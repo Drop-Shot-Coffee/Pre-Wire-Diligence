@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSC · HWVC Pre-Wire Diligence Package</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --paper:#f5f1e8; --paper-dark:#ebe5d6; --ink:#1a1f2e; --ink-soft:#4a5161; --ink-mute:#8a8c93;
+    --rule:#c9bfa8; --rule-soft:#ddd4bf; --accent:#b8463c; --positive:#2d5a3d; --warning:#8b6914;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',sans-serif; background:var(--paper); color:var(--ink); font-size:14px; line-height:1.55;
+    background-image:repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(184,70,60,0.04) 31px,rgba(184,70,60,0.04) 32px); }
+  .page { max-width:1240px; margin:0 auto; padding:48px 56px 96px; }
+
+  header { border-bottom:2px solid var(--ink); padding-bottom:24px; margin-bottom:32px; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; }
+  .brand-mark { font-family:'Cormorant Garamond',serif; font-size:13px; letter-spacing:0.3em; text-transform:uppercase; color:var(--ink-soft); }
+  .brand-title { font-family:'Cormorant Garamond',serif; font-weight:600; font-size:40px; line-height:1.05; }
+  .brand-sub { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:16px; color:var(--ink-soft); margin-top:4px; }
+  .header-meta { text-align:right; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-soft); letter-spacing:0.05em; }
+  .header-meta div { margin:2px 0; }
+  .user-badge { display:flex; align-items:center; gap:8px; justify-content:flex-end; margin-top:8px; }
+  .user-badge span { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-mute); }
+  .user-badge button { background:none; border:1px solid var(--rule); color:var(--ink-soft); font-family:'JetBrains Mono',monospace; font-size:10px; padding:4px 10px; cursor:pointer; }
+  .user-badge button:hover { background:var(--paper-dark); color:var(--ink); }
+  .track-note { font-size:10.5px; color:var(--ink-mute); text-align:right; margin-top:4px; max-width:340px; }
+
+  .gate-screen { display:flex; justify-content:center; align-items:center; min-height:100vh; padding:24px; }
+  .gate-card { background:var(--paper); border:1px solid var(--rule); padding:48px 56px; max-width:460px; width:100%; box-shadow:0 20px 60px rgba(26,31,46,0.08); }
+  .gate-card .brand-title { font-size:32px; margin-bottom:2px; }
+  .gate-card .brand-sub { margin-bottom:24px; }
+  .gate-conf { border-left:3px solid var(--accent); background:rgba(255,255,255,0.5); padding:12px 16px; font-size:12.5px; color:var(--ink-soft); margin-bottom:28px; }
+  .gate-btns { display:flex; flex-direction:column; gap:12px; }
+  .gate-btns button { background:var(--ink); color:var(--paper); border:none; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.15em; text-transform:uppercase; padding:14px; cursor:pointer; }
+  .gate-btns button:hover { background:var(--accent); }
+  .gate-btns button.alt { background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  .gate-btns button.alt:hover { border-color:var(--accent); color:var(--accent); }
+
+  nav.tabs { display:flex; flex-wrap:wrap; border-bottom:1px solid var(--ink); margin-bottom:40px; }
+  nav.tabs button { background:none; border:none; border-bottom:3px solid transparent; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-soft); padding:12px 18px 10px; cursor:pointer; }
+  nav.tabs button:hover { color:var(--ink); }
+  nav.tabs button.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab-panel { display:none; } .tab-panel.active { display:block; animation:fade .2s ease; }
+  @keyframes fade { from{opacity:0;} to{opacity:1;} }
+
+  .summary { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); margin-bottom:40px; }
+  .summary-item { padding:20px 24px; border-right:1px solid var(--rule); }
+  .summary-item:last-child { border-right:none; }
+  .summary-label { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:8px; }
+  .summary-value { font-family:'Cormorant Garamond',serif; font-size:27px; font-weight:600; }
+  .summary-value.accent { color:var(--accent); }
+  .summary-note { font-size:11px; color:var(--ink-mute); margin-top:4px; }
+  .summary-note a { color:var(--accent); text-decoration:none; border-bottom:1px dashed var(--accent); }
+
+  .section-title { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:24px; margin:40px 0 18px; display:flex; align-items:baseline; gap:12px; }
+  .section-title:first-child { margin-top:0; }
+  .section-title::after { content:''; flex:1; border-bottom:1px dashed var(--rule); margin-bottom:4px; }
+  .lede { max-width:820px; color:var(--ink-soft); margin-bottom:20px; }
+  .lede strong { color:var(--ink); }
+
+  table { width:100%; border-collapse:collapse; margin-bottom:28px; background:rgba(255,255,255,0.35); }
+  th { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:10px 14px; border-bottom:1.5px solid var(--ink); }
+  td { padding:11px 14px; border-bottom:1px solid var(--rule-soft); vertical-align:top; }
+  td.mono, th.mono { font-family:'JetBrains Mono',monospace; font-size:12.5px; }
+  td.num { font-family:'JetBrains Mono',monospace; font-size:12.5px; text-align:right; white-space:nowrap; }
+  th.num { text-align:right; }
+  tr.total td { border-top:1.5px solid var(--ink); border-bottom:none; font-weight:600; }
+  tr.subhead td { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-mute); background:var(--paper-dark); padding:6px 14px; }
+
+  .chip { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; padding:3px 9px; border:1px solid currentColor; border-radius:2px; white-space:nowrap; }
+  .chip.done { color:var(--positive); } .chip.progress { color:var(--warning); } .chip.pending { color:var(--ink-mute); }
+  .chip.gated { color:var(--accent); } .chip.ahead { color:var(--positive); background:rgba(45,90,61,0.08); }
+  .ph { background:rgba(139,105,20,0.12); border:1px dashed var(--warning); color:var(--warning); font-family:'JetBrains Mono',monospace; font-size:11px; padding:1px 7px; border-radius:2px; white-space:nowrap; }
+
+  a.doc-link { display:inline-flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); padding:5px 12px; border-radius:2px; text-decoration:none; margin:3px 6px 3px 0; background:rgba(184,70,60,0.04); }
+  a.doc-link:hover { background:var(--accent); color:var(--paper); }
+  a.doc-link.dimmed, a.doc-link.soon { color:var(--ink-mute); border-color:var(--rule); background:transparent; pointer-events:none; }
+  a.doc-link.soon { border-style:dashed; }
+  a.site-link { color:var(--accent); text-decoration:none; border-bottom:1px dashed var(--accent); white-space:nowrap; }
+  .proof-cell { margin-top:8px; padding-top:8px; border-top:1px dashed var(--rule-soft); }
+  .proof-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--positive); margin-bottom:4px; }
+
+  button.clarify-btn { background:transparent; border:1px solid var(--warning); color:var(--warning); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; padding:5px 12px; border-radius:2px; cursor:pointer; margin-top:8px; }
+  button.clarify-btn:hover { background:var(--warning); color:var(--paper); }
+  tr.clarify-row { display:none; } tr.clarify-row.open { display:table-row; }
+  tr.clarify-row td { background:rgba(139,105,20,0.06); border-left:3px solid var(--warning); }
+  .clarify-title { font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.2em; text-transform:uppercase; color:var(--warning); margin-bottom:8px; }
+  .clarify-body { max-width:880px; color:var(--ink-soft); }
+  .clarify-body strong { color:var(--ink); }
+
+  .callout { border:1px solid var(--rule); border-left:3px solid var(--accent); background:rgba(255,255,255,0.45); padding:18px 22px; margin:0 0 28px; max-width:880px; }
+  .callout.neutral { border-left-color:var(--ink-soft); } .callout.amber { border-left-color:var(--warning); }
+  .callout-label { font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-mute); margin-bottom:6px; }
+  .callout p { color:var(--ink-soft); } .callout p strong { color:var(--ink); } .callout p a { color:var(--accent); }
+
+  .prose { max-width:840px; color:var(--ink-soft); margin-bottom:18px; }
+  .prose strong { color:var(--ink); }
+  ol.seq { max-width:840px; margin:0 0 28px 20px; color:var(--ink-soft); }
+  ol.seq li { margin-bottom:8px; padding-left:6px; } ol.seq li strong { color:var(--ink); }
+
+  .live-badge { display:inline-flex; align-items:center; gap:7px; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--positive); border:1px solid var(--positive); padding:3px 10px; border-radius:2px; }
+  .live-badge.off { color:var(--ink-mute); border-color:var(--rule); }
+  .live-badge .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .live-val { font-family:'JetBrains Mono',monospace; }
+  .live-note { font-size:11px; color:var(--ink-mute); }
+  .delta-up { color:var(--positive); font-family:'JetBrains Mono',monospace; font-size:11.5px; }
+  .delta-down { color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:11.5px; }
+  .delta-flat { color:var(--ink-mute); font-family:'JetBrains Mono',monospace; font-size:11.5px; }
+
+  button.update-btn { background:var(--ink); color:var(--paper); border:none; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; padding:8px 16px; cursor:pointer; border-radius:2px; }
+  button.update-btn:hover { background:var(--accent); }
+
+  .artifact-cat { border-top:1.5px solid var(--ink); margin-top:26px; padding-top:14px; }
+  .artifact-cat-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:4px; }
+  .artifact-cat-num { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:0.15em; }
+  .artifact-cat-title { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; color:var(--ink); }
+  .artifact-cat-why { font-size:12.5px; color:var(--ink-mute); font-style:italic; margin-bottom:14px; max-width:820px; }
+  .artifact-item { display:grid; grid-template-columns:270px 1fr; gap:18px; padding:11px 0; border-bottom:1px solid var(--rule-soft); align-items:start; }
+  .artifact-item:last-child { border-bottom:none; }
+  .artifact-desc { font-size:13px; color:var(--ink-soft); }
+  .artifact-desc strong { color:var(--ink); }
+  @media (max-width:900px) { .artifact-item { grid-template-columns:1fr; gap:6px; } }
+  footer { margin-top:72px; border-top:2px solid var(--ink); padding-top:16px; display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.08em; color:var(--ink-mute); flex-wrap:wrap; gap:8px; }
+
+  @media (max-width:900px) {
+    .page { padding:28px 20px 72px; }
+    .summary { grid-template-columns:repeat(2,1fr); }
+    .brand-title { font-size:30px; }
+    table { display:block; overflow-x:auto; }
+    .track-note { text-align:left; }
+  }
+</style>
+</head>
+<body>
+
+<div class="gate-screen" id="gateScreen">
+  <div class="gate-card">
+    <div class="brand-mark">Drop Shot Coffee, Inc.</div>
+    <div class="brand-title">Pre-Wire Diligence</div>
+    <div class="brand-sub">Series Seed Initial Closing · Set 8</div>
+    <div class="gate-conf">
+      This package is confidential to Drop Shot Coffee, Inc. and Headway Venture Capital.
+      By entering, you agree not to share or distribute its contents.
+    </div>
+    <div class="gate-btns">
+      <button id="enterHWVC" type="button">Enter as Headway VC</button>
+      <button id="enterTarek" type="button" class="alt">Enter as Tarek Elkazzaz</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="app" style="display:none">
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">Drop Shot Coffee, Inc.</div>
+    <div class="brand-title">Pre-Wire Diligence Package</div>
+    <div class="brand-sub">Prepared for Headway Venture Capital · Series Seed Initial Closing</div>
+  </div>
+  <div class="header-meta">
+    <div>SET 8 · HWVC DILIGENCE</div>
+    <div>VERSION 0.3 — DRAFT</div>
+    <div id="hdrDate">JULY 10, 2026</div>
+    <div>CONFIDENTIAL</div>
+    <div class="user-badge">
+      <span id="userName"></span>
+      <button id="logBtn" type="button" style="display:none">Visit log</button>
+      <button id="switchUser" type="button">Switch</button>
+    </div>
+    <div class="track-note">For the closing record, this page keeps a light log of visits and document access, and content updates are versioned.</div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="t1" class="active">1 · Overview</button>
+  <button data-tab="t2">2 · $10K Advance</button>
+  <button data-tab="t3">3 · Planned vs. Actual</button>
+  <button data-tab="t4">4 · Work Completed</button>
+  <button data-tab="t5">5 · Team &amp; Continuity</button>
+  <button data-tab="t6">6 · Business Model</button>
+  <button data-tab="t7">7 · Execution Plan</button>
+  <button data-tab="t8">8 · POC Projection</button>
+  <button data-tab="t9" id="logTabBtn" style="display:none">Log</button>
+</nav>
+
+<!-- ===================== TAB 1 · OVERVIEW ===================== -->
+<section class="tab-panel active" id="t1">
+  <div class="summary">
+    <div class="summary-item">
+      <div class="summary-label">Total Commitment</div>
+      <div class="summary-value" id="ovTotal">$750,000</div>
+      <div class="summary-note">Per Term Sheet, March 23, 2026</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Advanced to Date</div>
+      <div class="summary-value" id="ovAdvance">$10,000</div>
+      <div class="summary-note">June 2026 · loan, retired at closing</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Due at Initial Closing</div>
+      <div class="summary-value accent" id="ovDue">$260,000</div>
+      <div class="summary-note" id="ovDueNote">Balance of the first tranche</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Warrant Coverage</div>
+      <div class="summary-value" id="ovWarrant">$480,000</div>
+      <div class="summary-note">180 days · completes the commitment · warrant agreement drafted — <a href="https://docs.google.com/document/d/1_lxULEhv8nAtmITVRJD3fpwm9Vin3VEB?rtpof=true&usp=drive_fs" target="_blank" rel="noopener" data-track="Warrant Agreement">view the draft ↗</a></div>
+    </div>
+  </div>
+
+  <div class="section-title">Purpose of this package</div>
+  <p class="lede">This package responds to the pre-wire prerequisite set requested by HWVC ahead of the Series Seed Initial Closing, together with three companion deliverables added by the Company. Each request maps to one tab. Financial figures throughout are read <strong>live from the Company's POC Financial Model</strong> — this document cannot drift from the model it reports on.</p>
+
+  <table>
+    <thead><tr><th style="width:52px">Tab</th><th>Deliverable</th><th>Requested by</th><th style="width:130px">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">2</td><td>Accounting of the $10,000 advance — plan vs. actual spend, net position at closing</td><td>Company</td><td><span class="chip progress">Draft</span></td></tr>
+      <tr><td class="mono">3</td><td>Planned vs. actual against the submitted POC plan — operational and financial deviations</td><td>Company</td><td><span class="chip progress">Draft</span></td></tr>
+      <tr><td class="mono">4</td><td>Full account of work completed, tied to the submitted milestone plan</td><td>HWVC</td><td><span class="chip progress">Draft</span></td></tr>
+      <tr><td class="mono">5</td><td><strong>Team &amp; continuity</strong> — how the departing co-founder's role is covered, and why the operating model does not rest on one person</td><td>HWVC</td><td><span class="chip progress">Draft</span></td></tr>
+      <tr><td class="mono">6</td><td><strong>Business model</strong> — where the money is actually made; why tournaments are the profit centre and leagues are an acquisition engine</td><td>HWVC</td><td><span class="chip progress">Draft</span></td></tr>
+      <tr><td class="mono">7</td><td>Execution plan — named venues, LOI/MOU posture, beverage operations</td><td>HWVC + Company</td><td><span class="chip progress">Draft</span></td></tr>
+      <tr><td class="mono">8</td><td>POC financial projection and its connection back to the full plan</td><td>HWVC</td><td><span class="chip progress">Draft</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout neutral">
+    <div class="callout-label">Plan of record</div>
+    <p>The baseline referenced throughout is the POC plan previously shared with HWVC: the <a class="site-link" href="https://drop-shot-coffee.github.io/Project-Plan/" target="_blank" rel="noopener" data-track="Project Plan">expandable tournament model</a> (May 2026) — a 10-month proof of concept built on tournaments, recurring leagues, an app layer, ambassadors, and mobile beverage carts. Deviations in this package are measured against that submission.</p>
+    <p style="margin-top:12px">
+      <a class="doc-link" href="https://drop-shot-coffee.github.io/Project-Plan/" target="_blank" rel="noopener" data-track="Project Plan">Project Plan — Executive Summary · POC Plan · POC Financial Model ↗</a>
+    </p>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Corporate status — stated once</div>
+    <p>The Company is completing a co-founder separation and will close as a <strong>single-founder structure</strong>. The closing architecture was deliberately built so that <strong>no closing requirement depends on the departing co-founder's participation or signature</strong> — the round closes on the same terms in every scenario. How the co-founder\u2019s role is covered \u2014 and why the operating model was never dependent on any single person \u2014 is set out in full in Tab 5. No further separation detail is included here.</p>
+  </div>
+</section>
+
+<!-- ===================== TAB 2 · $10K ADVANCE ===================== -->
+<section class="tab-panel" id="t2">
+  <div class="section-title">The $10,000 advance</div>
+  <p class="lede">In June 2026, HWVC advanced <strong>$10,000</strong> to the Company against its committed first tranche. The advance was requested with a defined use-of-funds plan, shared with HWVC at the time, and was spent in accordance with that plan.</p>
+
+  <p style="margin:0 0 16px">
+    <a class="doc-link" id="ledgerLink" href="https://drop-shot-coffee.github.io/ledger/" target="_blank" rel="noopener" data-track="Company Ledger">Open the Company Ledger ↗</a>
+    <span class="live-note" id="ledgerLinkNote"></span>
+  </p>
+
+  <div class="callout neutral">
+    <div class="callout-label">Treatment</div>
+    <p>The advance is a <strong>loan that retires at the Initial Closing</strong>. At closing, the first-tranche obligation is satisfied by the $10,000 previously advanced plus a wire of <strong id="advWireDue">$260,000</strong>. No amendment to the transaction documents is proposed. Should HWVC prefer the advance be expressly papered into the closing set, the Company will conform the documents on request.</p>
+  </div>
+
+  <p style="margin:0 0 12px"><span class="live-badge off" id="liveBadge2"><span class="dot"></span><span>Ledger sync</span></span> <span class="live-note" id="liveNote2">Actuals populate automatically from the DSC-Admin Ledger.</span></p>
+  <table>
+    <thead><tr><th>Category</th><th>Purpose</th><th class="num">Planned</th><th class="num">Actual (Ledger)</th><th>Notes</th></tr></thead>
+    <tbody id="advanceBody">
+      <tr><td>Court access</td><td>Bay Club advance-booking subscription — prime-time courts powering the live league program</td><td class="num">$3,000</td><td class="num" id="actCourt"><span class="ph">pending sync</span></td><td>Leagues running since June 9</td></tr>
+      <tr><td>Legal</td><td>Independent counsel for the Series Seed closing stack (flat-fee engagement)</td><td class="num">$5,000</td><td class="num" id="actLegal"><span class="ph">pending sync</span></td><td>Flat-fee path replaced a ~$20K full-service quote</td></tr>
+      <tr><td>Branding</td><td>Initial brand identity work</td><td class="num">$2,000</td><td class="num" id="actBrand"><span class="ph">pending sync</span></td><td>Commissioning document prepared; production post-wire</td></tr>
+      <tr class="total"><td colspan="2">Total</td><td class="num">$10,000</td><td class="num" id="actTotal"><span class="ph">pending sync</span></td><td class="live-note" id="actRemaining"></td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Position at closing</div>
+  <table style="max-width:660px">
+    <tbody>
+      <tr><td>First tranche per Term Sheet</td><td class="num" id="posTranche">$270,000</td></tr>
+      <tr><td>Less: advance, June 2026 (retired at closing) <span class="live-note" id="advReceived"></span></td><td class="num">($10,000)</td></tr>
+      <tr class="total"><td>Wire due at Initial Closing</td><td class="num" id="posDue">$260,000</td></tr>
+    </tbody>
+  </table>
+  <p class="prose">Receipts and payment records for each line are available for inspection on request.</p>
+</section>
+
+<!-- ===================== TAB 3 · PLANNED VS ACTUAL ===================== -->
+<section class="tab-panel" id="t3">
+  <div class="section-title">Planned vs. actual — workstream by workstream</div>
+  <p class="lede">The plan of record projected a 10-month POC beginning May 2026. The Initial Closing did not occur on the originally modeled schedule; the Company continued executing on founder float and the $10,000 advance. Where a workstream has delivered work product, a <strong>proof link</strong> is provided.</p>
+
+  <table>
+    <thead><tr><th style="width:120px">Workstream</th><th>Planned</th><th>Actual</th><th style="width:110px">Deviation</th></tr></thead>
+    <tbody>
+      <tr><td>Fundraise</td><td>First close modeled for late May 2026</td><td>Closing documentation complete; funds due at Initial Closing; $10K advanced June 2026</td><td><span class="chip gated">Behind</span></td></tr>
+      <tr>
+        <td>Legal / corporate</td>
+        <td>Standard counsel-led financing cascade</td>
+        <td>Full closing stack drafted (charter, SPA, warrant, voting agreement, consents); independent counsel review before execution; capital structure restructured for the single-founder close
+          <div class="proof-cell"><div class="proof-label">Proof of work</div>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/Legal-no-Karim/" target="_blank" rel="noopener" data-track="Closing Room">Enter the Closing Room ↗</a>
+          </div>
+        </td>
+        <td><span class="chip done">Complete*</span></td>
+      </tr>
+      <tr>
+        <td>Leagues</td>
+        <td>Unbranded test season Jun–Aug, community building, no revenue</td>
+        <td>Live recurring league since June 9 — an all-men's league of 16 players on prime-time Bay Club courts. A Wednesday mixed-doubles league was just added, expanding participation to <strong>22 players across both genders</strong>. Growing week over week; run on founder float and the advance</td>
+        <td><span class="chip ahead">Ahead</span></td>
+      </tr>
+      <tr>
+        <td>Ambassadors</td>
+        <td>One lead ambassador, possibly a second</td>
+        <td>Four active: <strong>Jonas Satuito</strong> (Lead Ambassador &amp; Tournament Consultant), <strong>Malinka Seneviratne</strong> (League Ambassador), <strong>Cathy Howe</strong> (Women's League Ambassador), <strong>Tyler McClure</strong> (Community Building Ambassador). Final contracts execute at the round's closing
+          <div class="proof-cell"><div class="proof-label">Proof of work</div>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/Ambassadors/" target="_blank" rel="noopener" data-track="Ambassador Page">Ambassador Page ↗</a>
+          </div>
+        </td>
+        <td><span class="chip ahead">Ahead</span></td>
+      </tr>
+      <tr>
+        <td>Tournament 1</td>
+        <td id="pvaT1Plan">Early September 2026, ~350 players</td>
+        <td id="pvaT1Actual">Venue booking gated on the wire (see venue policy, Tab 7); designed to draw from beyond the Bay Area</td>
+        <td><span class="chip gated">Gated</span></td>
+      </tr>
+      <tr id="venueRow">
+        <td>Venues</td>
+        <td>Venue partnership pursuit in parallel</td>
+        <td>Deliberate freeze on venue <em>commitments</em> pre-wire; interim access via the Bay Club advance-booking subscription.<br><br>
+          <strong>Facilities contacted:</strong>
+          <a class="site-link" href="https://www.bayclubs.com/" target="_blank" rel="noopener" data-track="Venue: Bay Club">Bay Club</a> ·
+          <a class="site-link" href="https://baypadel.us/" target="_blank" rel="noopener" data-track="Venue: Bay Padel">Bay Padel</a> ·
+          <a class="site-link" href="https://centerline33.com/" target="_blank" rel="noopener" data-track="Venue: CenterLine 33">CenterLine 33</a><br>
+          <strong>To be contacted:</strong>
+          <a class="site-link" href="https://thehubpickleball.com/" target="_blank" rel="noopener" data-track="Venue: The HUB">The HUB Pickleball</a> ·
+          <a class="site-link" href="https://www.lifetime.life/" target="_blank" rel="noopener" data-track="Venue: Life Time">Life Time</a><br>
+          <button class="clarify-btn" type="button" data-clarify="clarifyBayClub">Clarification</button>
+        </td>
+        <td><span class="chip progress">Re-sequenced</span></td>
+      </tr>
+      <tr class="clarify-row" id="clarifyBayClub"><td colspan="4">
+        <div class="clarify-title">Clarification — the Bay Club track</div>
+        <div class="clarify-body">
+          <p>The Bay Club conversation has <strong>not fallen through — it changed altitude.</strong> The South San Francisco branch discussion, opened through a direct working relationship with the branch manager, advanced to the point where Bay Club elected to treat a Drop Shot partnership as a <strong>corporate-level negotiation across the club network</strong>, rather than a per-branch arrangement.</p>
+          <p style="margin-top:10px">A corporate negotiation requires a properly constituted counterparty — an incorporated, funded, and branded entity. At the time the conversation was elevated, that entity did not yet exist in complete form; branch-level access had been achievable on relationship strength alone, and that leverage does not carry to the corporate table. The current closing supplies exactly what the corporate conversation requires. Meanwhile branch-level court access remains active through the advance-booking subscription — the leagues run on Bay Club courts today — and the corporate conversation reopens from standing, not from scratch, once the round closes.</p>
+        </div>
+      </td></tr>
+      <tr>
+        <td>App</td>
+        <td>App V1 by Tournament 2</td>
+        <td>UX wireframes developed and a working front-end model built; production hardening assigned to the ambassador-developer
+          <div class="proof-cell"><div class="proof-label">Proof of work</div>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/TestApp/" target="_blank" rel="noopener" data-track="App Test">App — Test Build ↗</a>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/Dual-Instance-App-Test/" target="_blank" rel="noopener" data-track="App Dual-Instance">Dual-Instance Test ↗</a>
+          </div>
+        </td>
+        <td><span class="chip ahead">Ahead</span></td>
+      </tr>
+      <tr>
+        <td>Brand</td>
+        <td>Core identity early in POC</td>
+        <td>Positioning, competitive, and trademark research complete; brand strategy signed off. <strong>Brand Commissioning Document</strong> (designer brief) and <strong>Brand Identity Document</strong> (verbal system) both written. Visual production sequenced post-wire
+          <div class="proof-cell"><div class="proof-label">Proof of work</div>
+            <a class="doc-link" href="https://docs.google.com/document/d/19vFNctT7sMBBuVqvbkvz7wLSX92yUN5d/edit?usp=sharing&ouid=106903052871384581335&rtpof=true&sd=true" target="_blank" rel="noopener" data-track="Brand Commissioning Document">Brand Commissioning Document ↗</a>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/Branding/" target="_blank" rel="noopener" data-track="Branding Workspace">Branding Workspace ↗</a>
+            <a class="doc-link" href="https://docs.google.com/document/d/1cfL3RLCr-_q7f7LxMDD3PC6lBEl02NOb/edit?usp=sharing&ouid=106903052871384581335&rtpof=true&sd=true" target="_blank" rel="noopener" data-track="Brand Identity Document">Brand Identity Document ↗</a>
+          </div>
+        </td>
+        <td><span class="chip progress">Re-sequenced</span></td>
+      </tr>
+      <tr><td>Hiring</td><td>Marketing &amp; PR specialist from June 1</td><td>Hiring is gated pending the wire; the role is scoped and activates at close</td><td><span class="chip gated">Gated</span></td></tr>
+      <tr><td>Beverage ops</td><td>COO-owned: cart procurement, menu</td><td>Reassigned under the single-founder structure — full plan in Tabs 5 and 7</td><td><span class="chip progress">Restructured</span></td></tr>
+    </tbody>
+  </table>
+  <p class="prose" style="font-size:12px; color:var(--ink-mute)">* Pending independent counsel review before execution and filing.</p>
+
+  <div class="section-title">Financial deviations — as submitted vs. current model</div>
+  <p style="margin:0 0 14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+    <button class="update-btn" id="btnUpdateFin" type="button">Update from database</button>
+    <span class="live-badge off" id="liveBadge3"><span class="dot"></span><span>Not yet updated</span></span>
+    <span class="live-note">Left column = the May 2026 submission to HWVC. Right column = the live POC Financial Model. Both read from the database.</span>
+  </p>
+  <table>
+    <thead><tr><th>Item</th><th>As submitted (May 2026)</th><th>Current model</th><th style="width:180px">Deviation</th></tr></thead>
+    <tbody>
+      <tr><td>POC horizon</td><td id="fdHorizonPlan">10 months</td><td id="fdHorizonCur">—</td><td id="fdHorizonDelta">—</td></tr>
+      <tr><td>Capital at first close</td><td id="fdCapitalPlan">—</td><td id="fdCapitalCur">—</td><td id="fdCapitalDelta">—</td></tr>
+      <tr><td>Founder payroll (POC total)</td><td id="fdFounderPlan">—</td><td id="fdFounderCur">—</td><td id="fdFounderDelta">—</td></tr>
+      <tr><td>Direct project cost</td><td id="fdDirectPlan">—</td><td id="fdDirectCur">—</td><td id="fdDirectDelta">—</td></tr>
+      <tr><td>Tournament net (all events)</td><td id="fdTNetPlan">—</td><td id="fdTNetCur">—</td><td id="fdTNetDelta">—</td></tr>
+      <tr><td>Tournament schedule</td><td id="fdSchedPlan">—</td><td id="fdSchedCur">—</td><td id="fdSchedDelta">—</td></tr>
+      <tr><td>Pre-close spend</td><td>None modeled</td><td>$10K advance deployed + founder float carrying leagues</td><td id="fdFloat"><span class="ph">pending Ledger sync</span></td></tr>
+      <tr class="total"><td>Ending cash at POC</td><td id="fdEndPlan">—</td><td id="fdEndCur">—</td><td id="fdEndDelta">—</td></tr>
+    </tbody>
+  </table>
+  <div class="callout neutral" id="deviationNarrative" style="display:none">
+    <div class="callout-label">What the deviation means</div>
+    <p id="deviationText"></p>
+  </div>
+</section>
+
+<!-- ===================== TAB 4 · WORK COMPLETED ===================== -->
+<section class="tab-panel" id="t4">
+  <div class="section-title">Work completed, tied to the submitted milestone plan</div>
+  <p class="lede">Every milestone below is mapped to the <strong>project plan previously submitted to HWVC</strong> — the same schedule of codes and workstreams shared in May 2026. Each principal artifact produced since is treated as a milestone against that plan. Several rows carry a <strong>Details</strong> expander and links to the delivered work.</p>
+
+  <p style="margin:0 0 24px">
+    <a class="doc-link" href="https://drop-shot-coffee.github.io/Project-Plan/" target="_blank" rel="noopener" data-track="Submitted Project Plan" style="font-size:11.5px; padding:8px 16px">Submitted Project Plan — Executive Summary · POC Plan · POC Financial Model ↗</a>
+  </p>
+
+  <table>
+    <thead><tr><th style="width:70px">Code</th><th>Milestone</th><th>Evidence / artifact</th><th style="width:130px">Status</th></tr></thead>
+    <tbody>
+      <tr class="subhead"><td colspan="4">Fundraising &amp; legal</td></tr>
+      <tr><td class="mono">F-1</td><td>Fundraising — first tranche</td><td>Term sheet executed; $10K advanced; full closing documentation drafted; funds due at Initial Closing</td><td><span class="chip progress">At closing</span></td></tr>
+      <tr>
+        <td class="mono">L-1</td><td>Incorporation</td>
+        <td>Delaware C-Corp filed May 19, 2026; EIN, bylaws, initial board actions, indemnification, 83(b) elections complete
+          <div class="proof-cell"><div class="proof-label">Documents</div>
+            <a class="doc-link" href="https://drive.google.com/drive/folders/17h9j7ZLxn6IaMkLwR-oN74WiNkk2yF7p?usp=sharing" target="_blank" rel="noopener" data-track="Formation Documents">Company Formation Documents ↗</a>
+          </div>
+        </td>
+        <td><span class="chip done">Done</span></td>
+      </tr>
+      <tr>
+        <td class="mono">L-2</td><td>Share structure</td>
+        <td>Restated charter, Series Seed SPA, warrant, and voting agreement drafted to signature-ready state; capital structure restructured for the single-founder close
+          <div class="proof-cell"><div class="proof-label">Proof of work</div>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/Legal-no-Karim/" target="_blank" rel="noopener" data-track="Closing Room">Enter the Closing Room ↗</a>
+          </div>
+        </td>
+        <td><span class="chip progress">Restructured</span></td>
+      </tr>
+      <tr class="subhead"><td colspan="4">Community &amp; ambassadors</td></tr>
+      <tr>
+        <td class="mono">A-1</td><td>Lead ambassador agreement</td>
+        <td>Jonas Satuito — Lead Ambassador &amp; Tournament Consultant
+          <div style="margin-top:8px"><button class="clarify-btn" type="button" data-clarify="expA1">Details</button></div>
+        </td>
+        <td><span class="chip progress">Finalizing</span></td>
+      </tr>
+      <tr class="clarify-row" id="expA1"><td colspan="4">
+        <div class="clarify-title">Details — Jonas Satuito</div>
+        <div class="clarify-body"><p>Jonas is fully aligned and actively operating as lead ambassador; the master terms are agreed. What remains is execution: the investment is the trigger to finalize and sign the agreement, since it activates the compensation the contract commits the Company to. The relationship is running ahead of the paperwork, not behind it.</p></div>
+      </td></tr>
+      <tr>
+        <td class="mono">A-0</td><td>Additional ambassadors</td>
+        <td>Three beyond the original plan: Malinka Seneviratne (League Ambassador), Cathy Howe (Women's League Ambassador), Tyler McClure (Community Building Ambassador)
+          <div class="proof-cell"><div class="proof-label">Proof of work</div>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/Ambassadors/" target="_blank" rel="noopener" data-track="Ambassador Page">Ambassador Page ↗</a>
+          </div>
+          <div style="margin-top:8px"><button class="clarify-btn" type="button" data-clarify="expA0">Details</button></div>
+        </td>
+        <td><span class="chip ahead">Exceeded</span></td>
+      </tr>
+      <tr class="clarify-row" id="expA0"><td colspan="4">
+        <div class="clarify-title">Details — additional ambassadors</div>
+        <div class="clarify-body"><p>None of these three were in the original plan — the plan budgeted for one lead ambassador and possibly a second, which is why this milestone reads <strong>Exceeded</strong>. Malinka is at the same stage as Jonas: fully aligned, terms agreed, signature pending the investment. Cathy and Tyler are at earlier negotiation stages. All contracts finalize on the same trigger — the close.</p></div>
+      </td></tr>
+      <tr>
+        <td class="mono">—</td><td>Live league program</td>
+        <td>Recurring leagues at Bay Club since June 9 — an all-men's league of 16, plus a newly added Wednesday mixed-doubles league; 22 players across both genders and growing. The engine that recruited ambassadors three and four
+          <div style="margin-top:8px"><button class="clarify-btn" type="button" data-clarify="expLeague">Details</button></div>
+        </td>
+        <td><span class="chip ahead" style="display:block; margin-bottom:6px">Live</span><span class="chip gated">Branding gated</span></td>
+      </tr>
+      <tr class="clarify-row" id="expLeague"><td colspan="4">
+        <div class="clarify-title">Details — the league program</div>
+        <div class="clarify-body">
+          <p>The leagues are the live proof of the community thesis: recurring, organically growing play that converts casual players into a committed base and surfaces ambassador talent — two of the current four ambassadors were recruited straight out of league play. It started as a men's league of 16 and now includes a Wednesday mixed-doubles session, taking active participation to 22 across both genders in a matter of weeks.</p>
+          <p style="margin-top:10px">It runs <strong>unbranded</strong> by necessity, not choice: the league cannot carry Drop Shot branding until the brand identity and the drinks menu exist, and both are gated on the investment. That is why this milestone shows <strong>Live</strong> for the program and <strong>Branding gated</strong> alongside it — the community is real today; dressing it in the brand waits on the close.</p>
+        </div>
+      </td></tr>
+      <tr class="subhead"><td colspan="4">Product &amp; brand</td></tr>
+      <tr>
+        <td class="mono">S-2</td><td>App prototype</td>
+        <td>UX wireframes developed for the community app (registrations, invitations, court requests, game organization) and a working front-end model built
+          <div class="proof-cell"><div class="proof-label">Proof of work</div>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/TestApp/" target="_blank" rel="noopener" data-track="App Test">App — Test Build ↗</a>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/Dual-Instance-App-Test/" target="_blank" rel="noopener" data-track="App Dual-Instance">Dual-Instance Test ↗</a>
+            <a class="doc-link" href="https://www.linkedin.com/in/malinka-seneviratne/" target="_blank" rel="noopener" data-track="Malinka LinkedIn">Developer — Malinka (LinkedIn) ↗</a>
+          </div>
+          <div style="margin-top:8px"><button class="clarify-btn" type="button" data-clarify="expS2">Details</button></div>
+        </td>
+        <td><span class="chip done">Built</span></td>
+      </tr>
+      <tr class="clarify-row" id="expS2"><td colspan="4">
+        <div class="clarify-title">Details — app prototype</div>
+        <div class="clarify-body"><p>The UX wireframes were developed and handed to Malinka Seneviratne, who is both a Company ambassador and the developer on the project — he hardens the front-end model into production. The build is proven: a dual-instance test harness runs two live instances against a shared backend. As with the ambassador contracts, Malinka's development agreement is gated on the investment: the scope is agreed, and the close activates it.</p></div>
+      </td></tr>
+      <tr>
+        <td class="mono">B-1</td><td>Core brand</td>
+        <td>Positioning, competitive, and trademark research complete; discovery framework locked. Both the <strong>Brand Commissioning Document</strong> (designer brief) and the <strong>Brand Identity Document</strong> (the verbal system — frame, audience, wedge, personality, voice, messaging house, and the distinctive-asset brief) are written. Visual identity execution is deliberately sequenced post-wire
+          <div class="proof-cell"><div class="proof-label">Proof of work</div>
+            <a class="doc-link" href="https://docs.google.com/document/d/19vFNctT7sMBBuVqvbkvz7wLSX92yUN5d/edit?usp=sharing&ouid=106903052871384581335&rtpof=true&sd=true" target="_blank" rel="noopener" data-track="Brand Commissioning Document">Brand Commissioning Document ↗</a>
+            <a class="doc-link" href="https://drop-shot-coffee.github.io/Branding/" target="_blank" rel="noopener" data-track="Branding Workspace">Branding Workspace ↗</a>
+            <a class="doc-link" href="https://docs.google.com/document/d/1cfL3RLCr-_q7f7LxMDD3PC6lBEl02NOb/edit?usp=sharing&ouid=106903052871384581335&rtpof=true&sd=true" target="_blank" rel="noopener" data-track="Brand Identity Document">Brand Identity Document ↗</a>
+          </div>
+        </td>
+        <td><span class="chip done">Strategy complete</span><br><span class="chip gated" style="margin-top:6px">Visual gated</span></td>
+      </tr>
+      <tr class="subhead"><td colspan="4">Events &amp; operations</td></tr>
+      <tr><td class="mono">T-3</td><td>Tournament 1 confirmed</td><td id="wcT1">Window and target scale defined; booking gated on wire per venue policy</td><td><span class="chip gated">Gated</span></td></tr>
+      <tr><td class="mono">M-1 / E-1</td><td>Roaster partner / cart vendor</td><td>Supply model defined (Tab 5); vendor selection sequenced immediately post-wire</td><td><span class="chip pending">Post-wire</span></td></tr>
+      <tr><td class="mono">—</td><td>Team</td><td>Marketing &amp; PR role scoped; hiring gated to close</td><td><span class="chip gated">Gated</span></td></tr>
+      <tr><td class="mono">—</td><td>Operating infrastructure</td><td>Accounting ledger, document-tracking and signing dashboards, project management system — built and in daily use</td><td><span class="chip done">Live</span></td></tr>
+    </tbody>
+  </table>
+
+
+  <div class="section-title">Artifact index — everything the Company has produced</div>
+  <p class="lede">Every artifact created to date, ordered by <strong>significance to the closing and to the business</strong> — not chronologically. Each category states why it matters; each link states what it is. This is the complete evidentiary record behind the milestones above.</p>
+
+  <!-- 1 -->
+  <div class="artifact-cat">
+    <div class="artifact-cat-head">
+      <span class="artifact-cat-num">01</span>
+      <span class="artifact-cat-title">The closing itself</span>
+      <span class="chip gated">Governs the wire</span>
+    </div>
+    <div class="artifact-cat-why">The documents that must exist and be correct for HWVC's money to move. Nothing else in this index matters if these are wrong — which is why they sit first.</div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://drop-shot-coffee.github.io/Legal-no-Karim/" target="_blank" rel="noopener" data-track="Closing Room">Closing Room ↗</a></div>
+      <div class="artifact-desc"><strong>The full Series Seed signature set.</strong> Restated charter, Stock Purchase Agreement, warrant, voting agreement, and the board and stockholder consents — drafted to signature-ready state and restructured for the single-founder close. Pending independent counsel review before execution and filing.</div>
+    </div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://docs.google.com/document/d/1_lxULEhv8nAtmITVRJD3fpwm9Vin3VEB?rtpof=true&usp=drive_fs" target="_blank" rel="noopener" data-track="Warrant Agreement">Warrant Agreement ↗</a></div>
+      <div class="artifact-desc"><strong>The instrument that completes the commitment.</strong> 180-day warrant covering the balance of the total commitment beyond the first tranche, on the NVCA form with agreed material-event revaluation triggers.</div>
+    </div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://drive.google.com/drive/folders/17h9j7ZLxn6IaMkLwR-oN74WiNkk2yF7p?usp=sharing" target="_blank" rel="noopener" data-track="Formation Documents">Company Formation Documents ↗</a></div>
+      <div class="artifact-desc"><strong>Proof the entity is real and clean.</strong> Delaware C-Corp certificate, EIN, bylaws, initial board actions, indemnification agreements, and §83(b) elections. Filed May 19, 2026.</div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="artifact-cat">
+    <div class="artifact-cat-head">
+      <span class="artifact-cat-num">02</span>
+      <span class="artifact-cat-title">The plan HWVC is funding</span>
+      <span class="chip done">Live model</span>
+    </div>
+    <div class="artifact-cat-why">The submitted plan and its live financial model. Every figure in this diligence package is read from these — the document you are reading cannot drift from the model it reports on.</div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://drop-shot-coffee.github.io/Project-Plan/" target="_blank" rel="noopener" data-track="Project Plan">Project Plan ↗</a></div>
+      <div class="artifact-desc"><strong>The plan of record, in three parts.</strong> <em>Executive Summary</em> (the thesis and the numbers), <em>POC Plan</em> (the 86-task schedule, costs, and milestones), and <em>POC Financial Model</em> (every input editable — funding, founders, tournaments, leagues, unit economics). The model is the single source of truth for this package.</div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="artifact-cat">
+    <div class="artifact-cat-head">
+      <span class="artifact-cat-num">03</span>
+      <span class="artifact-cat-title">Proof the community is real</span>
+      <span class="chip ahead">Running today</span>
+    </div>
+    <div class="artifact-cat-why">The Company's central claim is that this is a culture, not a fad. These are the artifacts that make that claim checkable rather than asserted — the operators, and the product they run on.</div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://drop-shot-coffee.github.io/Ambassadors/" target="_blank" rel="noopener" data-track="Ambassador Page">Ambassador Page ↗</a></div>
+      <div class="artifact-desc"><strong>Four ambassadors, against a plan that budgeted for one.</strong> Jonas Satuito (senior pro, Lead Ambassador), Malinka Seneviratne (League Ambassador and the app developer), Cathy Howe (Women's League), Tyler McClure (Community Building). Two were recruited out of league play itself. They are the operating bench described in Tab 5.</div>
+    </div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://drop-shot-coffee.github.io/TestApp/" target="_blank" rel="noopener" data-track="App Test">App — Test Build ↗</a></div>
+      <div class="artifact-desc"><strong>The working front-end model.</strong> Registrations, invitations, court requests, and game organisation — the community layer that moves the relationship off third-party group chats onto a channel the Company owns.</div>
+    </div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://drop-shot-coffee.github.io/Dual-Instance-App-Test/" target="_blank" rel="noopener" data-track="App Dual-Instance">App — Dual-Instance Test ↗</a></div>
+      <div class="artifact-desc"><strong>Evidence the build actually works.</strong> Two live instances running against a shared backend — the proof that this is a functioning system rather than a static prototype.</div>
+    </div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://www.linkedin.com/in/malinka-seneviratne/" target="_blank" rel="noopener" data-track="Malinka LinkedIn">Developer — Malinka ↗</a></div>
+      <div class="artifact-desc"><strong>Who hardens it to production.</strong> Ambassador and developer both — an insider building for insiders. Scope agreed; contract activates at close.</div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="artifact-cat">
+    <div class="artifact-cat-head">
+      <span class="artifact-cat-num">04</span>
+      <span class="artifact-cat-title">The brand</span>
+      <span class="chip done">Strategy complete</span>
+      <span class="chip gated">Visual gated on the wire</span>
+    </div>
+    <div class="artifact-cat-why">Everything that does not require capital has been done: positioning, audience, differentiation wedge, personality, voice, and the designer brief. Only the visual execution — which does require capital — is deferred. This is the pattern across the whole Company.</div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://docs.google.com/document/d/1cfL3RLCr-_q7f7LxMDD3PC6lBEl02NOb/edit?usp=sharing&ouid=106903052871384581335&rtpof=true&sd=true" target="_blank" rel="noopener" data-track="Brand Identity Document">Brand Identity Document ↗</a></div>
+      <div class="artifact-desc"><strong>The verbal system.</strong> Category frame, audience and job-to-be-done, the onliness wedge, personality, voice (with worked examples), the messaging house, and the distinctive-asset brief. The document a designer, a copywriter, or an ambassador works from.</div>
+    </div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://docs.google.com/document/d/19vFNctT7sMBBuVqvbkvz7wLSX92yUN5d/edit?usp=sharing&ouid=106903052871384581335&rtpof=true&sd=true" target="_blank" rel="noopener" data-track="Brand Commissioning Document">Brand Commissioning Document ↗</a></div>
+      <div class="artifact-desc"><strong>The designer brief.</strong> The scope, constraints, and deliverables for the visual identity engagement — ready to commission on the day the wire lands.</div>
+    </div>
+    <div class="artifact-item">
+      <div><a class="doc-link" href="https://drop-shot-coffee.github.io/Branding/" target="_blank" rel="noopener" data-track="Branding Workspace">Brand Strategy Workspace ↗</a></div>
+      <div class="artifact-desc"><strong>The reasoning behind the answers.</strong> The discovery spine — category, customer, competitor, frame, difference, conviction, sacrifice, personality — with the positions argued and signed off, not merely stated.</div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="artifact-cat">
+    <div class="artifact-cat-head">
+      <span class="artifact-cat-num">05</span>
+      <span class="artifact-cat-title">Operating infrastructure</span>
+      <span class="chip done">In daily use</span>
+    </div>
+    <div class="artifact-cat-why">Not glamorous, and not usually shown to investors — included because it evidences how the Company actually runs. Every number in this package flows from these systems rather than from a spreadsheet assembled for the occasion.</div>
+    <div class="artifact-item">
+      <div><a class="doc-link" id="ledgerLink2" href="https://drop-shot-coffee.github.io/ledger/" target="_blank" rel="noopener" data-track="Company Ledger">Company Ledger ↗</a></div>
+      <div class="artifact-desc"><strong>The accounting record.</strong> Every inflow and outflow, categorised, with company-funded and shareholder-funded spend distinguished. Tab 2's reconciliation of the $10,000 advance reads directly from it. <span id="ledgerNote2" class="live-note"></span></div>
+    </div>
+    <div class="artifact-item">
+      <div><span class="live-note" style="font-family:'JetBrains Mono',monospace; font-size:10.5px">Internal · available on request</span></div>
+      <div class="artifact-desc"><strong>Document tracking and signing dashboards, and the project management system.</strong> The pre-wire document cascade, the signature workflow, and the task schedule the POC Plan is generated from. Not published here; available to HWVC on request.</div>
+    </div>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-label">Spending to date — per Company Ledger <span class="live-badge off" id="liveBadge4" style="margin-left:10px"><span class="dot"></span><span>Ledger sync</span></span></div>
+    <p id="spendSummary">Company spending to date consists of the $10,000 advance (Tab 2) plus founder-carried float sustaining the league program pending the wire. <span class="ph">pending Ledger sync</span></p>
+    <table style="max-width:660px; margin:14px 0 4px">
+      <tbody>
+        <tr><td>Company-funded outflows (from the advance)</td><td class="num live-val" id="sumCompany">—</td></tr>
+        <tr><td>Shareholder-funded outflows (founder float)</td><td class="num live-val" id="sumFloat">—</td></tr>
+        <tr><td>Float repaid by Company to date</td><td class="num live-val" id="sumRepaid">—</td></tr>
+        <tr class="total"><td>Founder float outstanding</td><td class="num live-val" id="sumOutstanding">—</td></tr>
+      </tbody>
+    </table>
+    <p class="live-note">Figures stream from the Company's accounting ledger in real time. A full extract with receipts is available on request.</p>
+  </div>
+</section>
+
+
+<!-- ===================== TAB 5 · TEAM & CONTINUITY ===================== -->
+<section class="tab-panel" id="t5">
+  <div class="section-title">Team &amp; continuity</div>
+  <p class="lede">HWVC has asked directly how the Company covers the departing co-founder's role. The answer is not that the CEO absorbs it. It is that <strong>the operating model was already distributed across specialists, and the co-founder held a role rather than a capability</strong>. This tab sets out what he owned, who owns it now, and what the Company is buying with the raise to close the remaining gap.</p>
+
+  <div class="callout">
+    <div class="callout-label">The honest position, stated first</div>
+    <p>A single-founder company carries key-person risk, and the Company does not pretend otherwise. What follows is not a claim that nothing changed — it is the plan for what changed. Two of the four functions the co-founder held were <strong>already being performed by others</strong> before his departure. One is <strong>structurally outsourced by design</strong> and never depended on him. One — the day-to-day operating load — is <strong>the gap the raise is explicitly funding</strong>, through a marketing/PR hire at close and a dedicated operations lead once the first tournament validates run-rate.</p>
+  </div>
+
+  <div class="section-title">What the co-founder owned, and who owns it now</div>
+  <table>
+    <thead><tr><th style="width:150px">Function</th><th>Previously</th><th>Now</th><th style="width:130px">Gap</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Beverage operations</strong><br><span class="live-note">Cart, menu, roaster</span></td>
+        <td>COO-owned workstream: cart procurement, menu development, supplier relationships</td>
+        <td>CEO owns vendor selection; product itself is supplied by an established specialty roaster on a non-exclusive basis. <strong>This was always the model</strong> — the Company never intended in-house F&amp;B manufacturing, so no capability left with the co-founder. Detail in Tab 7</td>
+        <td><span class="chip done">No gap</span><br><span class="live-note" style="font-size:10px">Structurally outsourced</span></td>
+      </tr>
+      <tr>
+        <td><strong>Community &amp; events</strong><br><span class="live-note">Leagues, tournaments, players</span></td>
+        <td>Shared founder responsibility</td>
+        <td><strong>Four ambassadors</strong>, each with a defined remit: Jonas Satuito (Lead Ambassador &amp; Tournament Consultant — a senior pro whose word carries inside the community), Malinka Seneviratne (League Ambassador), Cathy Howe (Women's League Ambassador), Tyler McClure (Community Building). The live league program is run by them today</td>
+        <td><span class="chip ahead">Strengthened</span><br><span class="live-note" style="font-size:10px">1 planned → 4 active</span></td>
+      </tr>
+      <tr>
+        <td><strong>Product / app</strong></td>
+        <td>Not co-founder-owned</td>
+        <td>Ambassador-developer (Malinka Seneviratne) hardens the working front-end model to production. Scope agreed; contract activates at close</td>
+        <td><span class="chip done">No gap</span></td>
+      </tr>
+      <tr>
+        <td><strong>Day-to-day operating load</strong><br><span class="live-note">Event execution, front-of-house</span></td>
+        <td>Split between two founders</td>
+        <td>Carried by the CEO in the interim. <strong>This is the real gap</strong>, and it is what the raise funds: a <strong>Marketing &amp; PR hire at close</strong> (role scoped, activates on the wire) and a <strong>dedicated operations lead budgeted post-T1</strong>, once the first tournament validates run-rate. Event-day staffing is on per-event contracts, not headcount</td>
+        <td><span class="chip gated">Funded by the raise</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Why this is more robust than it looks</div>
+  <p class="prose">Three structural facts, each verifiable rather than asserted:</p>
+  <ol class="seq">
+    <li><strong>The community engine is not a founder.</strong> The leagues that run twice weekly today — 22 players across two sessions, growing — are operated by ambassadors, not by the departed co-founder. Two of the four ambassadors were recruited <em>out of league play itself</em>. The engine that recruits the operators is the product, and it is already running.</li>
+    <li><strong>The supply chain was never in-house.</strong> A non-exclusive roaster relationship means no single-supplier dependency and no manufacturing capability to replace. Losing a co-founder does not remove the ability to make the product, because the Company never made the product.</li>
+    <li><strong>The load that remains is a hiring problem, not a capability problem.</strong> Marketing/PR and an operations lead are both budgeted, scoped, and standard to hire. They are gated on capital, not on scarcity — which is precisely what the Initial Closing resolves.</li>
+  </ol>
+
+  <div class="callout amber">
+    <div class="callout-label">The residual risk, named</div>
+    <p>Between the wire and the operations hire, the CEO carries a concentrated load through the first tournament. The Company's mitigations are the ambassador bench (four operators with community standing), per-event contract staffing rather than fixed headcount, and a deliberately narrow menu built for cart-speed execution. The Company would rather state this plainly than have HWVC discover it.</p>
+  </div>
+
+  <div class="section-title">The team at close</div>
+  <table>
+    <thead><tr><th>Role</th><th>Who</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Chief Executive Officer</td><td>Tarek Elkazzaz</td><td><span class="chip done">In post</span></td></tr>
+      <tr><td>Lead Ambassador &amp; Tournament Consultant</td><td>Jonas Satuito — senior pro, VP Golden State Pickleball Foundation</td><td><span class="chip progress">Terms agreed · signs at close</span></td></tr>
+      <tr><td>League Ambassador &amp; Developer</td><td>Malinka Seneviratne</td><td><span class="chip progress">Terms agreed · signs at close</span></td></tr>
+      <tr><td>Women's League Ambassador</td><td>Cathy Howe</td><td><span class="chip progress">In negotiation</span></td></tr>
+      <tr><td>Community Building Ambassador</td><td>Tyler McClure</td><td><span class="chip progress">In negotiation</span></td></tr>
+      <tr><td>Marketing &amp; PR</td><td>Scoped — hire on the wire</td><td><span class="chip gated">Funded by the raise</span></td></tr>
+      <tr><td>Operations lead</td><td>Budgeted — hire post-T1</td><td><span class="chip gated">Funded by the raise</span></td></tr>
+      <tr><td>Coffee supply</td><td>Specialty roaster, non-exclusive</td><td><span class="chip pending">Vendor selection post-wire</span></td></tr>
+    </tbody>
+  </table>
+  <p class="prose" style="font-size:12px; color:var(--ink-mute)">Every ambassador contract executes on the same trigger — the close — because each activates compensation the Company commits to. The relationships are running ahead of the paperwork, not behind it.</p>
+</section>
+
+<!-- ===================== TAB 6 · BUSINESS MODEL ===================== -->
+<section class="tab-panel" id="t6">
+  <div class="section-title">The business model</div>
+  <p class="lede">Not every activity in this business is meant to make money, and treating them as if they were would misread the plan. This tab sets out <strong>which activities are profit centres, which are acquisition and retention engines, and which are pure cost</strong> — and how they feed each other. Every figure reads live from the POC Financial Model.</p>
+
+  <p style="margin:0 0 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+    <button class="update-btn" id="btnUpdateBM" type="button">Update from database</button>
+    <span class="live-badge off" id="liveBadgeBM"><span class="dot"></span><span>Not yet updated</span></span>
+  </p>
+
+  <div class="section-title">The three roles</div>
+  <table>
+    <thead><tr><th style="width:130px">Activity</th><th style="width:120px">Role</th><th>What it is for</th><th class="num" style="width:110px">Net to company</th><th class="num" style="width:90px">Share of net</th></tr></thead>
+    <tbody id="bmRolesBody">
+      <tr><td colspan="5" class="live-note">Press "Update from database" to load the live figures.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout" id="bmCallout" style="display:none">
+    <div class="callout-label">The distinction that matters</div>
+    <p id="bmCalloutText"></p>
+  </div>
+
+  <div class="section-title">Why leagues are not a profit line — and why that is deliberate</div>
+  <p class="prose">A league season is priced to be <strong>accessible, not lucrative</strong>. Its purpose is to convert a casual player into a committed member of a community, at a cost per acquisition far below what paid marketing would cost — and then to keep them. It is the top of the funnel and the retention layer at once.</p>
+  <table>
+    <thead><tr><th>What the league does</th><th>Why it pays for itself many times over</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Acquires players</strong></td>
+        <td>A player who joins a league is a player who enters tournaments. The league is how a stranger becomes a customer — and it costs the Company almost nothing net to run</td>
+      </tr>
+      <tr>
+        <td><strong>Recruits the operators</strong></td>
+        <td><strong>Two of the four current ambassadors came out of league play.</strong> The league is not just a customer funnel — it is the talent funnel for the people who run the business</td>
+      </tr>
+      <tr>
+        <td><strong>Creates the drink habit</strong></td>
+        <td>Recurring weekly play is where the courtside drink becomes a ritual rather than a novelty. Tournament beverage volume depends on a habit the leagues build</td>
+      </tr>
+      <tr>
+        <td><strong>Proves the community thesis</strong></td>
+        <td>Recurring, organically growing play is the evidence that this is a culture and not a fad — the single claim the entire brand rests on</td>
+      </tr>
+      <tr>
+        <td><strong>De-risks the tournaments</strong></td>
+        <td>A tournament with a standing league base behind it fills. A tournament without one is a cold-start marketing problem</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="prose"><strong>Read the league line as a marketing budget that happens to break even</strong> — not as a revenue line that underperforms. Judged as a profit centre it looks weak; judged as customer acquisition it is extraordinarily cheap.</p>
+
+  <div class="section-title">Where the money is actually made</div>
+  <p class="prose">Tournaments carry the economics, and they do so on two revenue lines that scale differently:</p>
+  <table>
+    <thead><tr><th>Revenue line</th><th>How it scales</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Entry fees</strong></td>
+        <td>Linear with players. More participants, more revenue — and participants are supplied by the league funnel and the ambassador reach</td>
+        <td>The base. Predictable, and the number the breakeven is measured against</td>
+      </tr>
+      <tr>
+        <td><strong>Beverage sales</strong></td>
+        <td>Scales with players <em>and</em> with the court-side crowd (~30% on top of the playing base), across a three-day event</td>
+        <td>The margin. Drinks carry the gross margin; the cart is the highest-margin surface the Company owns</td>
+      </tr>
+      <tr>
+        <td><strong>The cart, not the café</strong></td>
+        <td>Growth comes from more events and more carts — not from leases and build-outs</td>
+        <td><strong>This is the core structural bet.</strong> Capacity is bought per event, not carried as fixed cost. It is why the model expands without real estate</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Unit economics — live from the model</div>
+  <table>
+    <thead><tr><th>Event</th><th class="num">Revenue</th><th class="num">Net to company</th><th class="num">Margin</th><th>Note</th></tr></thead>
+    <tbody id="bmUnitBody">
+      <tr><td colspan="5" class="live-note">Loading…</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Beverage economics — the drink, on its own terms</div>
+  <p class="lede">The Company is a beverage brand. In the POC model the drink sits <em>inside</em> each tournament's economics, which makes it invisible. It is pulled out here and shown at the same depth as the events themselves — <strong>volume, price, cost, margin, and what it proves.</strong></p>
+
+  <table>
+    <thead><tr><th>Event</th><th class="num">Drinks served</th><th class="num">Beverage revenue</th><th class="num">COGS</th><th class="num">Gross profit</th><th class="num">Margin</th></tr></thead>
+    <tbody id="bevBody">
+      <tr><td colspan="6" class="live-note">Loading from the model…</td></tr>
+    </tbody>
+  </table>
+
+  <div class="summary" id="bevSummary" style="margin-bottom:32px">
+    <div class="summary-item">
+      <div class="summary-label">Drinks served</div>
+      <div class="summary-value" id="bevUnits">—</div>
+      <div class="summary-note" id="bevPerPlayer">across the POC</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Beverage revenue</div>
+      <div class="summary-value" id="bevRev">—</div>
+      <div class="summary-note" id="bevShare">of tournament revenue</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Gross margin</div>
+      <div class="summary-value accent" id="bevMargin">—</div>
+      <div class="summary-note">On drinks sold · after COGS</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Gross profit</div>
+      <div class="summary-value" id="bevGross">—</div>
+      <div class="summary-note">Beverage contribution to the POC</div>
+    </div>
+  </div>
+
+  <div class="callout amber">
+    <div class="callout-label">Read this line honestly</div>
+    <p id="bevHonest">In the POC, beverage is a <strong>proof line, not a profit line</strong> — and the Company would rather say so than dress it up. Entry fees carry the POC's economics because a first-year event business is priced to fill. What the drink must prove in this phase is the <strong>unit economics that make the scaled model work</strong>: that players buy at the price point, that the margin holds, and that a cart can serve the volume in the rhythm of play. Those three facts are what the Phase 2 build rests on. A beverage brand that cannot yet show a large beverage profit line, but <em>can</em> show a validated per-player drink rate and a proven margin, is exactly where a well-run POC should be.</p>
+  </div>
+
+  <table>
+    <thead><tr><th style="width:210px">What the drink must prove</th><th>Why it decides the scaled model</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Drinks per player</strong><br><span class="live-note" id="proveUPP">—</span></td><td>The single most important number in the beverage line. It is the multiplier on every future event, every cart, and every venue. Get it right at three tournaments and it can be projected with confidence across thirty</td></tr>
+      <tr><td><strong>Price tolerance</strong><br><span class="live-note" id="provePrice">—</span></td><td>Whether a court-sport community pays a specialty price for a specialty drink — the premise of the entire brand. If it holds at a tournament, it holds at a club</td></tr>
+      <tr><td><strong>Gross margin</strong><br><span class="live-note" id="proveMargin">—</span></td><td>A non-exclusive roaster supply model must deliver a margin that survives cart, staff, and event costs. This is the number that determines whether more carts mean more profit — or just more work</td></tr>
+      <tr><td><strong>Cart throughput</strong><br><span class="live-note">Serve rate in the gap between games</span></td><td>The operational constraint. A player will not wait ten minutes when their game starts in five — so throughput, not just demand, caps beverage revenue per event</td></tr>
+    </tbody>
+  </table>
+
+  <p class="prose"><strong>Where beverage goes after the POC.</strong> Volume is a function of touchpoints, and the POC deliberately buys only three. The scaled model adds permanent cart placements at partner venues — where the drink is sold every day the courts are open, not three days a quarter. That is the transition from a beverage line that <em>proves</em> a margin to one that <em>carries</em> the business, and it is what the warrant funds.</p>
+
+  <div class="section-title">The app — a deferred revenue engine</div>
+  <p class="lede">The app earns nothing in the POC, and that is deliberate. Its job in this phase is to <strong>assemble and own the community</strong>: registration, game organisation, league management, and the rewards layer — moving the relationship off third-party group chats and onto a channel the Company controls. <strong>Monetisation is a Phase 2 decision, and the thesis is a player subscription.</strong></p>
+
+  <div class="callout neutral">
+    <div class="callout-label">The subscription thesis — illustrative, not in the POC</div>
+    <p>Players already pay to play. What they do not yet have is a tool that reliably gets them <em>into</em> games — organising a four, finding a court, running a league, tracking a ladder. The Company's view is that once the app becomes the way a player secures consistent play, <strong>a subscription in the region of $25 per month</strong> is defensible — because the alternative is not another app, it is the WhatsApp group and the guesswork it replaces. Venues are not the payer; the player is.</p>
+  </div>
+
+  <table>
+    <thead><tr><th>Conversion of the POC community</th><th class="num">Subscribers</th><th class="num">MRR</th><th class="num">ARR</th><th>Read</th></tr></thead>
+    <tbody id="appBody">
+      <tr><td colspan="5" class="live-note">Loading…</td></tr>
+    </tbody>
+  </table>
+  <p class="prose" style="font-size:12px; color:var(--ink-mute)">Illustrative only, and explicitly outside the POC projection in Tab 8. The base is the community the POC assembles; the conversion rates are scenarios, not forecasts. No subscription revenue is claimed in any figure elsewhere in this package.</p>
+
+  <table>
+    <thead><tr><th style="width:230px">Why this line matters more than its size</th><th>Explanation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>It is recurring</strong></td><td>Tournaments are episodic and lumpy — revenue arrives three times a year and requires an operation each time. A subscription arrives every month and requires nothing incremental</td></tr>
+      <tr><td><strong>It is high margin</strong></td><td>No carts, no staff, no venue, no COGS. Beyond hosting and development, the marginal cost of the next subscriber is close to zero — against roughly 50% gross on a drink and a labour-intensive event</td></tr>
+      <tr><td><strong>It scales without physical presence</strong></td><td><strong>It is the only line in this business that does.</strong> Tournaments and carts both scale by adding operations. The app scales by adding users to a system that already exists</td></tr>
+      <tr><td><strong>It answers what the warrant funds</strong></td><td>The second tranche is not simply "more tournaments." It funds permanent cart placements <em>and</em> switches on a revenue layer against a community the POC has already built and proven</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">How the parts feed each other</div>
+  <ol class="seq">
+    <li><strong>The league acquires and retains</strong> — cheap, recurring, community-building. Near-zero net cost.</li>
+    <li><strong>The app owns the relationship</strong> — registration, organisation, and rewards move off third-party group chats onto a channel the Company controls. Not a revenue line in the POC; a moat.</li>
+    <li><strong>The ambassadors extend reach</strong> — trusted voices inside the community, not paid media. They convert their own networks and they recruit the next operators.</li>
+    <li><strong>The tournament monetises</strong> — entry fees plus beverage, at a margin that funds everything above it.</li>
+    <li><strong>The brand compounds</strong> — each event makes the next one easier to fill, and cheaper to fill.</li>
+  </ol>
+  <p class="prose"><strong>The POC exists to prove one loop:</strong> that leagues fill tournaments, that tournaments pay for themselves and for the leagues, and that the whole thing runs on carts rather than leases. Everything in Tab 8 is the arithmetic of that loop.</p>
+
+  <div class="section-title">What we are <em>not</em> doing, and why</div>
+  <table>
+    <thead><tr><th style="width:220px">Not doing</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><strong>No brick-and-mortar café</strong></td><td>A lease converts a variable cost into a fixed one and ties growth to real estate. The expandable model grows through events and carts instead — capacity is bought per event, not carried</td></tr>
+      <tr><td><strong>No retail or grocery distribution</strong></td><td>The drink only has meaning in the context of the game and the gathering. On a shelf it is an undifferentiated premium coffee competing on price</td></tr>
+      <tr><td><strong>Not the cheapest, not the fastest</strong></td><td>Relevance and quality carry a cost the vending machine does not bear. The Company wins by making the social value of the scene worth more than a few dollars saved — not by racing to the bottom</td></tr>
+      <tr><td><strong>No in-house roasting</strong></td><td>Capital-intensive, slow, and a distraction from the actual business, which is community. A non-exclusive roaster removes single-supplier risk without owning the plant</td></tr>
+    </tbody>
+  </table>
+  <p class="prose" style="font-size:12px; color:var(--ink-mute)">Sacrifice is the test of a real position. These are the things the Company gives up in order to own the social arc of play.</p>
+</section>
+
+<!-- ===================== TAB 7 · EXECUTION PLAN ===================== -->
+<section class="tab-panel" id="t7">
+  <div class="section-title">Execution plan — from wire to POC</div>
+  <p class="lede">The Company's venue policy is deliberate: <strong>no venue commitments before the wire.</strong> Committing deposits or contracts against uncommitted capital would put Company obligations ahead of Company funds. Interim court access is secured without contracts through the Bay Club advance-booking subscription. The named-venue pipeline below activates the day funds land. <span class="live-note">Event dates and scale below read live from the POC Financial Model.</span></p>
+
+  <table>
+    <thead><tr><th>Venue</th><th>Role</th><th>Relationship state</th><th>LOI / MOU posture</th></tr></thead>
+    <tbody id="venueTableBody">
+      <tr>
+        <td><a class="site-link" href="https://www.bayclubs.com/" target="_blank" rel="noopener" data-track="Venue: Bay Club"><strong>Bay Club</strong></a> (network, incl. SSF)</td>
+        <td>League operations — live today</td>
+        <td>Active. Advance-booking subscription in force; leagues running twice weekly on prime-time courts; club-level relationship established. Corporate-level conversation reopens at close (see Tab 3 clarification)</td>
+        <td>Operating relationship in evidence; formal MOU offered at close</td>
+      </tr>
+      <tr id="venueT1Row">
+        <td><a class="site-link" href="https://centerline33.com/" target="_blank" rel="noopener" data-track="Venue: CenterLine 33"><strong>CenterLine 33</strong></a>, Rohnert Park</td>
+        <td id="venueT1Role">Tournament 1 — primary candidate</td>
+        <td>Identified and scoped in prior planning; booking deliberately held pending the wire</td>
+        <td>LOI conditioned on close — issued within days of the wire</td>
+      </tr>
+      <tr>
+        <td><a class="site-link" href="https://baypadel.us/" target="_blank" rel="noopener" data-track="Venue: Bay Padel"><strong>Bay Padel</strong></a></td>
+        <td>League and event expansion</td>
+        <td>Contacted; in discussion</td>
+        <td>Engagement resumes post-wire</td>
+      </tr>
+      <tr>
+        <td><a class="site-link" href="https://thehubpickleball.com/" target="_blank" rel="noopener" data-track="Venue: The HUB">The HUB Pickleball</a> · <a class="site-link" href="https://www.lifetime.life/" target="_blank" rel="noopener" data-track="Venue: Life Time">Life Time</a></td>
+        <td>Pipeline — capacity for T2 / T3</td>
+        <td>To be contacted; approach prepared</td>
+        <td>Outreach begins at close</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout amber">
+    <div class="callout-label">On LOIs before the wire</div>
+    <p>Because venue commitments are frozen pre-wire by policy, executed LOIs cannot precede the closing without contradicting that policy. What exists today in binding or near-binding form: the live Bay Club operating relationship, and ambassador agreements representing committed operators. LOIs for tournament venues issue immediately post-wire; the Company will share them with HWVC as they execute.</p>
+  </div>
+
+  <div class="section-title">Sequenced plan from the wire</div>
+  <ol class="seq" id="executionSeq">
+    <li><strong>Week 0 (wire lands):</strong> venue freeze lifts. Tournament 1 venue booked. Deposit paid.</li>
+    <li><strong>Weeks 0–2:</strong> ambassador contracts executed (lead SOWs first). Roaster and cart vendor selections finalized. Brand identity engagement starts.</li>
+    <li><strong>Weeks 2–6:</strong> Tournament 1 announced through ambassador channels. Registration opens. Leagues formalized from unbranded test to branded seasons.</li>
+    <li><strong>Weeks 4–8:</strong> App production hardening completes; deployed as the registration and community layer.</li>
+    <li><strong>Tournament 1:</strong> executed. First revenue event; validates the model's unit economics.</li>
+    <li><strong>Post-T1:</strong> subsequent tournaments booked on the expandable model — same carts, same ambassador engine, larger draw.</li>
+  </ol>
+
+  <div class="section-title">Event schedule — live from the model</div>
+  <p style="margin:0 0 12px"><span class="live-badge off" id="liveBadge5"><span class="dot"></span><span>Model sync</span></span> <span class="live-note">Dates, venues, and economics below are the current POC Financial Model. Changing them there changes them here.</span></p>
+  <table>
+    <thead><tr><th>Event</th><th>Date</th><th>Venue / note</th><th class="num">Revenue</th><th class="num">Net to company</th></tr></thead>
+    <tbody id="eventScheduleBody">
+      <tr><td colspan="5" class="live-note">Loading from the model…</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Beverage operations under the single-founder structure</div>
+  <p class="prose">Beverage operations were previously a COO-owned workstream. Under the single-founder structure they are reorganized as follows — the operating model itself does not change, because it was never dependent on in-house F&amp;B manufacturing. Tab 5 sets out the wider continuity plan:</p>
+  <table>
+    <thead><tr><th>Function</th><th>How it is handled</th><th>Owner</th></tr></thead>
+    <tbody>
+      <tr><td>Coffee supply</td><td>Non-exclusive supply relationship with an established local specialty roaster. Roaster is back-of-house only; all customer-facing product is Drop Shot branded. A proven model in specialty beverage that removes single-supplier dependency.</td><td>CEO · vendor selection post-wire</td></tr>
+      <tr><td>Menu</td><td>Curated, adaptable menu per season and event theme — deliberately narrow for cart execution speed and margin control</td><td>CEO + roaster partner</td></tr>
+      <tr><td>Carts &amp; equipment</td><td>Branded cart program per the expandable model (rented branded cart for T1, scaling to 2–3 carts); vendor shortlist finalized post-wire</td><td>CEO</td></tr>
+      <tr><td>Event-day operations</td><td>Trained event staff on per-event contracts, coordinated with ambassador-run programming; marketing/PR function supports front-of-house once activated</td><td>CEO + Marketing &amp; PR</td></tr>
+      <tr><td>Dedicated operations lead</td><td>Budgeted hire once T1 validates run-rate — removes key-person load from the CEO for T2 onward</td><td>Post-T1 hire</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== TAB 8 · POC PROJECTION ===================== -->
+<section class="tab-panel" id="t8">
+  <div class="section-title">POC financial projection</div>
+  <p class="lede">Both columns read live from the database. <strong>As submitted</strong> is the May 2026 model delivered to HWVC — two founders, the original raise. <strong>Current model</strong> is the live <a class="site-link" href="https://drop-shot-coffee.github.io/Project-Plan/" target="_blank" rel="noopener" data-track="Project Plan">POC Financial Model</a> — single founder, rebased to the $270,000 first tranche. The gap between the columns is the substance of this tab.</p>
+
+  <p style="margin:0 0 14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+    <button class="update-btn" id="btnUpdateProj" type="button">Update from database</button>
+    <span class="live-badge off" id="liveBadge6"><span class="dot"></span><span>Not yet updated</span></span>
+  </p>
+
+  <table>
+    <thead><tr><th>Line</th><th class="num">As submitted (May 2026)</th><th class="num">Current model</th><th>Basis</th></tr></thead>
+    <tbody id="projBody">
+      <tr><td colspan="4" class="live-note">Press “Update from database” to load the live figures.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout neutral" id="projNarrative" style="display:none">
+    <div class="callout-label">What changed, and why it favours the investment</div>
+    <p id="projText"></p>
+  </div>
+
+  <div class="section-title">Connection back to the full plan</div>
+  <p class="prose" id="fullPlanProse">The POC is stage one of the committed structure. The Initial Closing funds the proof: tournaments executed at target scale, leagues converted to branded seasons, the app live as the community layer, and the cart model validated at real events. The warrant completes the raise — at which point HWVC holds the full 40.000% contemplated by the March term sheet.</p>
+  <p class="prose">The POC's exit metrics are the entry conditions for Phase 2 of the plan previously shared: low-friction permanent venues (clubs, community centers) layered onto a proven mobile engine — demand-pulled infrastructure rather than a real-estate bet. Each dollar of the warrant funds scale of a model the POC has already priced.</p>
+
+  <table style="max-width:880px">
+    <thead><tr><th>POC exit metric</th><th>Target</th><th>What it proves for the full plan</th></tr></thead>
+    <tbody id="exitMetricsBody">
+      <tr><td>Tournament scale</td><td class="mono" id="exitScale">—</td><td>Revenue grows with participants, not with real estate</td></tr>
+      <tr><td>League base</td><td class="mono" id="exitLeague">—</td><td>Recurring community, recurring revenue</td></tr>
+      <tr><td>Beverage volume</td><td class="mono"><span class="ph">units/event-day target</span></td><td>Cart unit economics at event scale</td></tr>
+      <tr><td>App adoption</td><td class="mono"><span class="ph">active users target</span></td><td>Owned channel replacing third-party group chats</td></tr>
+      <tr><td>Ending cash</td><td class="mono" id="exitCash">—</td><td>Model self-funds its operations before Phase 2 capital</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== TAB 9 · LOG ===================== -->
+<section class="tab-panel" id="t9">
+  <div class="section-title">Visit &amp; activity log</div>
+  <p class="lede">Entries record who entered the page and which documents or links were opened. Tab navigation and reading are not logged.</p>
+  <p style="margin:0 0 14px"><button class="update-btn" id="btnRefreshLog" type="button">Refresh log</button></p>
+  <table style="max-width:980px">
+    <thead><tr><th style="width:190px">Time</th><th style="width:160px">Who</th><th style="width:120px">Event</th><th>Detail</th></tr></thead>
+    <tbody id="logBody"><tr><td colspan="4" class="live-note">Loading…</td></tr></tbody>
+  </table>
+</section>
+
+<footer>
+  <div>DROP SHOT COFFEE, INC. · SET 8 · HWVC PRE-WIRE DILIGENCE PACKAGE</div>
+  <div>DRAFT v0.3 · CONFIDENTIAL — PREPARED FOR HEADWAY VENTURE CAPITAL</div>
+</footer>
+
+</div>
+
+<script>
+// ============ CONSTANTS ============
+const SB_URL = 'https://iwufnpzlwxzzedwcrjrk.supabase.co';
+const SB_KEY = 'sb_publishable_suHnnWiR60uSP_bKx9V_Yg_GJoCzddq';
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+const TOTAL_COMMITMENT = 750000;   // per Term Sheet, Mar 23 2026
+const ADVANCE          = 10000;    // HWVC advance, June 2026
+
+const money  = n => '$' + Math.round(Number(n)).toLocaleString('en-US');
+const money2 = n => '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const set    = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+// Deviation cell: green when the change helps the company, red when it hurts.
+function delta(cur, plan, opts) {
+  opts = opts || {};
+  const d = Number(cur) - Number(plan);
+  if (!isFinite(d) || d === 0) return '<span class="delta-flat">no change</span>';
+  const goodWhenUp = opts.goodWhenUp !== false;   // default: up is good
+  const good = goodWhenUp ? d > 0 : d < 0;
+  const cls  = good ? 'delta-up' : 'delta-down';
+  const sign = d > 0 ? '+' : '−';
+  return `<span class="${cls}">${sign}${money(Math.abs(d))}</span>`;
+}
+
+let PUB = null, BASE = null, LEDGER = null;
+
+// ============ GATE ============
+const gate = document.getElementById('gateScreen');
+const app  = document.getElementById('app');
+let actor = sessionStorage.getItem('dil_actor') || null;
+
+function track(event, detail) {
+  try { sb.from('diligence_activity').insert({ actor: actor || 'Unknown', event, detail: detail || null }).then(()=>{}); } catch(e){}
+}
+
+function enterAs(name, logVisit) {
+  actor = name;
+  sessionStorage.setItem('dil_actor', name);
+  document.getElementById('userName').textContent = name.toUpperCase();
+  gate.style.display = 'none';
+  app.style.display = 'block';
+  const isTarek = name === 'Tarek Elkazzaz';
+  document.getElementById('logBtn').style.display    = isTarek ? '' : 'none';
+  document.getElementById('logTabBtn').style.display = isTarek ? '' : 'none';
+  const ll = document.getElementById('ledgerLink'), lln = document.getElementById('ledgerLinkNote');
+  if (isTarek) { ll.classList.remove('dimmed'); lln.textContent = ''; }
+  else { ll.classList.add('dimmed'); lln.textContent = 'Ledger access opens to HWVC with the closing set; a full extract is available on request.'; }
+  const ll2 = document.getElementById('ledgerLink2'), lln2 = document.getElementById('ledgerNote2');
+  if (ll2) {
+    if (isTarek) { ll2.classList.remove('dimmed'); if (lln2) lln2.textContent = ''; }
+    else { ll2.classList.add('dimmed'); if (lln2) lln2.textContent = 'Access opens with the closing set; a full extract is available on request.'; }
+  }
+  if (logVisit) track('visit', 'Entered the diligence package');
+  bootstrap();
+}
+document.getElementById('enterHWVC').addEventListener('click', () => enterAs('Headway VC', true));
+document.getElementById('enterTarek').addEventListener('click', () => enterAs('Tarek Elkazzaz', true));
+document.getElementById('switchUser').addEventListener('click', () => {
+  sessionStorage.removeItem('dil_actor'); app.style.display='none'; gate.style.display='flex';
+});
+if (actor) enterAs(actor, false);
+
+// ============ TABS ============
+const tabs = document.querySelectorAll('#tabs button');
+const panels = document.querySelectorAll('.tab-panel');
+function showTab(id) {
+  tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  panels.forEach(p => p.classList.toggle('active', p.id === id));
+  window.scrollTo({top:0});
+  if (id === 't9') refreshLog();
+}
+tabs.forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+document.getElementById('logBtn').addEventListener('click', () => showTab('t9'));
+
+// Track document/link opens only
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[data-track]');
+  if (a && !a.classList.contains('dimmed') && !a.classList.contains('soon')) track('link', a.dataset.track + ' — ' + a.href);
+});
+
+// Expanders
+document.querySelectorAll('button.clarify-btn').forEach(btn => {
+  const label = btn.textContent.trim();
+  btn.addEventListener('click', () => {
+    const row = document.getElementById(btn.dataset.clarify);
+    const open = row.classList.toggle('open');
+    btn.textContent = open ? 'Close' : label;
+  });
+});
+
+// ============ DATA ============
+async function loadModel() {
+  try {
+    const { data, error } = await sb.from('poc_model').select('doc_key, state').in('doc_key', ['live','baseline']);
+    if (error || !data) return false;
+    data.forEach(r => {
+      if (r.doc_key === 'live')     PUB  = (r.state && r.state.published) || null;
+      if (r.doc_key === 'baseline') BASE = (r.state && r.state.published) || null;
+    });
+    return !!PUB;
+  } catch(e) { return false; }
+}
+async function loadLedger() {
+  try {
+    const { data, error } = await sb.rpc('diligence_ledger_summary');
+    if (error || !data) return false;
+    LEDGER = data; return true;
+  } catch(e) { return false; }
+}
+
+// ---- TAB 1: derive the deal headline from the model ----
+function paintOverview() {
+  if (!PUB) return;
+  const tranche = PUB.funding;                 // first tranche from the model
+  const due     = tranche - ADVANCE;           // what actually gets wired
+  const warrant = TOTAL_COMMITMENT - tranche;  // warrant completes the commitment
+  set('ovTotal',   money(TOTAL_COMMITMENT));
+  set('ovAdvance', money(ADVANCE));
+  set('ovDue',     money(due));
+  set('ovDueNote', 'Balance of the ' + money(tranche) + ' first tranche');
+  set('ovWarrant', money(warrant));
+  // Tab 2 mirrors
+  set('advWireDue', money(due));
+  set('posTranche', money(tranche));
+  set('posDue',     money(due));
+}
+
+// ---- TAB 2 + 4: ledger ----
+function paintLedger() {
+  const badges = [document.getElementById('liveBadge2'), document.getElementById('liveBadge4')];
+  if (!LEDGER) { badges.forEach(b => b && (b.lastElementChild.textContent = 'Ledger offline')); return; }
+  const s = LEDGER;
+  const cell = (id, v) => set(id, '<span class="live-val">' + money2(v) + '</span>');
+  cell('actCourt', s.company_out_court);
+  cell('actLegal', s.company_out_legal);
+  cell('actBrand', s.company_out_brand);
+  cell('actTotal', s.company_out_total);
+
+  const rem = ADVANCE - Number(s.company_out_total);
+  document.getElementById('actRemaining').textContent = rem >= 0
+    ? money2(rem) + ' of the advance undeployed'
+    : money2(-rem) + ' deployed beyond the advance';
+
+  // "Other" company-funded rows so the total always reconciles
+  const body = document.getElementById('advanceBody');
+  body.querySelectorAll('tr[data-other]').forEach(t => t.remove());
+  const totalRow = body.querySelector('tr.total');
+  Object.entries(s.company_out_other || {}).forEach(([cat, amt]) => {
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-other','1');
+    tr.innerHTML = '<td>Other — ' + cat + '</td><td>Company-funded operating spend outside the three planned buckets</td>'
+      + '<td class="num">—</td><td class="num live-val">' + money2(amt) + '</td><td class="live-note">Per Ledger</td>';
+    body.insertBefore(tr, totalRow);
+  });
+
+  if (Number(s.advance_received) > 0)
+    document.getElementById('advReceived').textContent = '· ' + money2(s.advance_received) + ' receipt confirmed per Ledger';
+
+  const outstanding = Math.max(Number(s.float_recognized) - Number(s.float_repaid), 0);
+  document.getElementById('sumCompany').textContent     = money2(s.company_out_total);
+  document.getElementById('sumFloat').textContent       = money2(s.float_recognized);
+  document.getElementById('sumRepaid').textContent      = money2(s.float_repaid);
+  document.getElementById('sumOutstanding').textContent = money2(outstanding);
+  document.getElementById('spendSummary').innerHTML =
+    'Company spending to date consists of the advance deployment (Tab 2) plus founder-carried float sustaining the league program pending the wire — <strong>'
+    + money2(outstanding) + ' outstanding to the founder</strong>, retired from working capital post-close.';
+  set('fdFloat', '<span class="live-val">' + money2(outstanding) + '</span> <span class="live-note">outstanding</span>');
+
+  const stamp = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  badges.forEach(b => { if (b) { b.classList.remove('off'); b.lastElementChild.textContent = 'Live · Ledger · ' + stamp; } });
+}
+
+// ---- TAB 3: real deviation table ----
+function paintDeviation() {
+  if (!PUB || !BASE) return;
+  const schedule = p => (p.tournaments || []).map(t => t.key + ' ' + (t.date_label || t.month || '—')).join(' · ');
+
+  set('fdHorizonPlan', BASE.duration_months + ' months');
+  set('fdHorizonCur',  PUB.duration_months + ' months');
+  set('fdHorizonDelta', BASE.duration_months === PUB.duration_months
+    ? '<span class="delta-flat">unchanged</span>'
+    : '<span class="delta-down">' + (PUB.duration_months - BASE.duration_months) + ' months</span>');
+
+  set('fdCapitalPlan', money(BASE.funding));
+  set('fdCapitalCur',  money(PUB.funding));
+  set('fdCapitalDelta', delta(PUB.funding, BASE.funding));
+
+  set('fdFounderPlan', money(BASE.founder_base) + ' <span class="live-note">(' + (BASE.founder_count||2) + ' founders)</span>');
+  set('fdFounderCur',  money(PUB.founder_base)  + ' <span class="live-note">(' + (PUB.founder_count||1) + ' founder)</span>');
+  set('fdFounderDelta', delta(PUB.founder_base, BASE.founder_base, {goodWhenUp:false}) + ' <span class="live-note">cost</span>');
+
+  set('fdDirectPlan', money(BASE.total_direct_cost));
+  set('fdDirectCur',  money(PUB.total_direct_cost));
+  set('fdDirectDelta', delta(PUB.total_direct_cost, BASE.total_direct_cost, {goodWhenUp:false}));
+
+  set('fdTNetPlan', money(BASE.tournament_net_total) + ' <span class="live-note">(' + BASE.tournament_count + ' events)</span>');
+  set('fdTNetCur',  money(PUB.tournament_net_total)  + ' <span class="live-note">(' + PUB.tournament_count + ' events)</span>');
+  set('fdTNetDelta', delta(PUB.tournament_net_total, BASE.tournament_net_total));
+
+  set('fdSchedPlan', '<span class="live-note">' + schedule(BASE) + '</span>');
+  set('fdSchedCur',  '<span class="live-note">' + schedule(PUB) + '</span>');
+  set('fdSchedDelta', schedule(BASE) === schedule(PUB)
+    ? '<span class="delta-flat">dates hold</span>'
+    : '<span class="delta-down">re-timed</span>');
+
+  set('fdEndPlan', money(BASE.ending_cash));
+  set('fdEndCur',  money(PUB.ending_cash));
+  set('fdEndDelta', delta(PUB.ending_cash, BASE.ending_cash));
+
+  const gain = PUB.ending_cash - BASE.ending_cash;
+  const saved = BASE.founder_base - PUB.founder_base;
+  document.getElementById('deviationNarrative').style.display = 'block';
+  set('deviationText',
+    'The single-founder structure removes <strong>' + money(saved) + '</strong> of founder payroll from the POC, and the first tranche is <strong>'
+    + money(PUB.funding - BASE.funding) + '</strong> larger than the figure modelled in May. Ending cash improves by <strong>' + money(gain)
+    + '</strong> against the submitted plan — the same programme, executed with a leaner cost base. The deviation is favourable to the investment, not adverse to it.');
+
+  // T1 prose in Tabs 3 and 4
+  const t1 = (PUB.tournaments || [])[0];
+  if (t1) {
+    set('pvaT1Plan', ((BASE.tournaments||[])[0] || {}).date_label || 'Early September 2026');
+    set('pvaT1Actual', 'Scheduled <strong>' + (t1.date_label || t1.month) + '</strong>' + (t1.venue ? ' at ' + t1.venue : '')
+      + '. Venue booking gated on the wire (see venue policy, Tab 7)');
+    set('wcT1', 'Scheduled <strong>' + (t1.date_label || t1.month) + '</strong>' + (t1.venue ? ' · ' + t1.venue : '')
+      + '. Booking gated on wire per venue policy');
+  }
+
+  const b3 = document.getElementById('liveBadge3');
+  b3.classList.remove('off');
+  b3.lastElementChild.textContent = 'Updated · ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+
+// ---- TAB 5: event schedule + T1-aware prose ----
+function paintExecution() {
+  if (!PUB) return;
+  const rows = [];
+  (PUB.tournaments || []).forEach(t => {
+    rows.push('<tr><td><strong>' + (t.label || t.key) + '</strong></td><td class="mono">' + (t.date_label || t.month || '—')
+      + '</td><td>' + (t.venue || '—') + '</td><td class="num">' + money(t.total_revenue) + '</td><td class="num">' + money(t.net_profit) + '</td></tr>');
+  });
+  (PUB.leagues || []).forEach(l => {
+    rows.push('<tr><td>' + (l.label || l.key) + '</td><td class="mono">' + (l.date_label || '—')
+      + '</td><td>Recurring league</td><td class="num">' + money(l.revenue) + '</td><td class="num">' + money(l.net_profit) + '</td></tr>');
+  });
+  rows.push('<tr class="total"><td colspan="3">Total across the POC</td><td class="num">' + money(PUB.total_revenue)
+    + '</td><td class="num">' + money(PUB.tournament_net_total + (PUB.leagues||[]).reduce((s,l)=>s+Number(l.net_profit||0),0)) + '</td></tr>');
+  document.getElementById('eventScheduleBody').innerHTML = rows.join('');
+
+  const t1 = (PUB.tournaments || [])[0];
+  if (t1) {
+    set('venueT1Role', (t1.label || 'Tournament 1') + ' — primary candidate · <span class="live-note">' + (t1.date_label || t1.month) + '</span>');
+    const seq = document.getElementById('executionSeq');
+    seq.children[0].innerHTML = '<strong>Week 0 (wire lands):</strong> venue freeze lifts. ' + (t1.label || 'Tournament 1')
+      + ' venue booked — targeting <strong>' + (t1.date_label || t1.month) + '</strong>' + (t1.venue ? ' at ' + t1.venue : '') + '. Deposit paid.';
+    seq.children[4].innerHTML = '<strong>' + (t1.label || 'Tournament 1') + ':</strong> executed. First revenue event — modelled at '
+      + money(t1.total_revenue) + ' revenue, ' + money(t1.net_profit) + ' net to the company. Validates the unit economics.';
+    const nT = (PUB.tournaments||[]).length;
+    if (nT > 1) {
+      seq.children[5].innerHTML = '<strong>Post-' + (t1.key || 'T1') + ':</strong> the remaining ' + (nT - 1)
+        + ' tournament' + (nT === 2 ? '' : 's') + ' run on the expandable model — same carts, same ambassador engine, larger draw.';
+    }
+  }
+  const b5 = document.getElementById('liveBadge5');
+  b5.classList.remove('off');
+  b5.lastElementChild.textContent = 'Live · Model · ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+
+// ---- TAB 6: projection, both columns from the DB ----
+function paintProjection() {
+  if (!PUB || !BASE) return;
+  const row = (label, planV, curV, basis, opts) => {
+    opts = opts || {};
+    const pv = opts.raw ? planV : money(planV);
+    const cv = opts.raw ? curV  : money(curV);
+    return '<tr><td>' + label + '</td><td class="num">' + pv + '</td><td class="num">' + cv + '</td><td class="live-note">' + basis + '</td></tr>';
+  };
+  const months = PUB.duration_months;
+  const founderMo = months ? Math.round(PUB.founder_base / months) : 0;
+
+  let html = '';
+  html += '<tr class="subhead"><td colspan="4">Capital in</td></tr>';
+  html += row('First tranche', BASE.funding, PUB.funding, 'Rebased to the $270K tranche; $10K already advanced');
+  html += '<tr class="subhead"><td colspan="4">Operating costs over the POC</td></tr>';
+  html += row('Founder payroll', BASE.founder_base, PUB.founder_base,
+        (BASE.founder_count||2) + ' founders → ' + (PUB.founder_count||1) + ' founder · ' + money(founderMo) + '/mo × ' + months + 'mo');
+  html += row('Direct project cost', BASE.total_direct_cost, PUB.total_direct_cost, 'Celoxis schedule');
+  html += row('Overhead (recurring)', BASE.overhead_total, PUB.overhead_total, money(PUB.overhead_monthly) + '/mo × ' + months + ' months');
+  html += row('Drink COGS', BASE.total_cogs, PUB.total_cogs, 'Cost of goods across all events');
+  html += row('Contingency reserve', BASE.contingency, PUB.contingency, 'Held until the final month');
+  html += '<tr class="subhead"><td colspan="4">Event economics (net to company)</td></tr>';
+  (PUB.tournaments || []).forEach((t, i) => {
+    const b = (BASE.tournaments || [])[i];
+    html += row((t.label || t.key) + ' <span class="live-note">' + (t.date_label || '') + '</span>',
+      b ? b.net_profit : 0, t.net_profit, (t.venue || 'Tournament') + ' · ' + money(t.total_revenue) + ' revenue');
+  });
+  html += row('League revenue (all seasons)', BASE.league_revenue, PUB.league_revenue, PUB.league_count + ' full seasons');
+  html += '<tr class="subhead"><td colspan="4">Outcome</td></tr>';
+  html += row('Total revenue', BASE.total_revenue, PUB.total_revenue, 'Tournaments + leagues');
+  html += row('Total outflow', BASE.total_outflow, PUB.total_outflow, 'All costs across the POC');
+  html += '<tr class="total"><td>Ending cash at POC</td><td class="num">' + money(BASE.ending_cash)
+       + '</td><td class="num">' + money(PUB.ending_cash) + '</td><td>' + delta(PUB.ending_cash, BASE.ending_cash) + '</td></tr>';
+  document.getElementById('projBody').innerHTML = html;
+
+  const saved = BASE.founder_base - PUB.founder_base;
+  const gain  = PUB.ending_cash - BASE.ending_cash;
+  document.getElementById('projNarrative').style.display = 'block';
+  set('projText', 'Against the plan HWVC received in May, the current model carries <strong>' + money(saved)
+    + ' less founder payroll</strong> and a <strong>' + money(PUB.funding - BASE.funding)
+    + ' larger first tranche</strong>. Ending cash rises from ' + money(BASE.ending_cash) + ' to <strong>' + money(PUB.ending_cash)
+    + '</strong> — a ' + money(gain) + ' improvement. The programme is unchanged: the same '
+    + PUB.tournament_count + ' tournaments, the same league seasons, the same app. It is simply cheaper to run with one founder.');
+
+  const warrant = TOTAL_COMMITMENT - PUB.funding;
+  set('fullPlanProse', 'The POC is stage one of the committed ' + money(TOTAL_COMMITMENT)
+    + ' structure. The Initial Closing funds the proof: ' + PUB.tournament_count
+    + ' tournaments executed at target scale, leagues converted to branded seasons, the app live as the community layer, and the cart model validated at real events. The <strong>'
+    + money(warrant) + ' warrant</strong> (180 days) completes the raise — at which point HWVC holds the full 40.000% contemplated by the March term sheet.');
+
+  // exit metrics
+  const ts = PUB.tournaments || [];
+  if (ts.length) {
+    const first = ts[0], last = ts[ts.length-1];
+    set('exitScale', money(first.net_profit) + ' → ' + money(last.net_profit) + ' net');
+  }
+  set('exitLeague', PUB.league_count + ' seasons · ' + money(PUB.league_revenue) + ' revenue');
+  set('exitCash', money(PUB.ending_cash) + (PUB.ending_cash > 0 ? ' surplus' : ' shortfall'));
+
+  const b6 = document.getElementById('liveBadge6');
+  b6.classList.remove('off');
+  b6.lastElementChild.textContent = 'Updated · ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+
+
+// ---- TAB 6: business model — the profit-centre vs acquisition-engine split ----
+function paintBusinessModel() {
+  if (!PUB) return;
+  const tNet = Number(PUB.tournament_net_total) || 0;
+  const lNet = (PUB.leagues || []).reduce((s, l) => s + Number(l.net_profit || 0), 0);
+  const lRev = Number(PUB.league_revenue) || 0;
+  const tRev = Number(PUB.tournament_revenue) || 0;
+  const totalNet = tNet + lNet;
+  const pct = v => totalNet ? (100 * v / totalNet).toFixed(1) + '%' : '—';
+
+  const roleRow = (act, role, roleCls, purpose, net, share) =>
+    '<tr><td><strong>' + act + '</strong></td><td><span class="chip ' + roleCls + '">' + role + '</span></td><td>'
+    + purpose + '</td><td class="num">' + money(net) + '</td><td class="num">' + share + '</td></tr>';
+
+  let html = '';
+  html += roleRow('Tournaments', 'Profit centre', 'done',
+    'Where the money is made. Entry fees plus beverage sales across a three-day event, at scale.',
+    tNet, pct(tNet));
+  html += roleRow('Leagues', 'Acquisition engine', 'progress',
+    'Priced to be accessible, not lucrative. Converts strangers into community, recruits ambassadors, and builds the drink habit that tournaments monetise. Roughly washes its own face.',
+    lNet, pct(lNet));
+  html += roleRow('The app', 'Deferred engine', 'gated',
+    'Assembles and owns the community in the POC — registration, organisation, leagues, rewards. Earns nothing now by design; the player subscription thesis (~$25/mo) is a Phase 2 revenue layer. The only line that scales without physical presence.',
+    0, '0.0% <span class="live-note">(by design)</span>');
+  html += roleRow('Ambassadors', 'Reach', 'pending',
+    'Trusted voices inside the community rather than paid media. A cost line that replaces a much larger marketing spend.',
+    0, '0.0%');
+  html += '<tr class="total"><td colspan="3">Net to company across the POC</td><td class="num">' + money(totalNet)
+       + '</td><td class="num">100%</td></tr>';
+  document.getElementById('bmRolesBody').innerHTML = html;
+
+  const lMargin = lRev ? (100 * lNet / lRev).toFixed(0) : 0;
+  const tMargin = tRev ? (100 * tNet / tRev).toFixed(0) : 0;
+  document.getElementById('bmCallout').style.display = 'block';
+  set('bmCalloutText',
+    'Tournaments generate <strong>' + money(tNet) + '</strong> of net across the POC — <strong>' + pct(tNet)
+    + ' of everything the Company earns</strong>, at a ' + tMargin + '% margin. Leagues generate <strong>'
+    + money(lNet) + '</strong> on <strong>' + money(lRev) + '</strong> of revenue — a ' + lMargin + '% margin on a small base, and only '
+    + pct(lNet) + ' of total net. <strong>That is not underperformance; it is the design.</strong> The league is priced to fill, not to profit. '
+    + 'Judged as a revenue line it looks weak. Judged as customer acquisition — one that also recruits the Company\u2019s operators and builds the beverage habit — it is extraordinarily cheap. '
+    + 'The correct way to read these two lines is that the leagues buy the players and the tournaments monetise them.');
+
+  // Unit economics
+  let u = '';
+  (PUB.tournaments || []).forEach(t => {
+    const m = t.total_revenue ? (100 * t.net_profit / t.total_revenue).toFixed(0) + '%' : '—';
+    u += '<tr><td><strong>' + (t.label || t.key) + '</strong> <span class="live-note">' + (t.date_label || '') + '</span></td>'
+      + '<td class="num">' + money(t.total_revenue) + '</td><td class="num">' + money(t.net_profit) + '</td>'
+      + '<td class="num">' + m + '</td><td class="live-note">' + (t.venue || 'Tournament') + '</td></tr>';
+  });
+  (PUB.leagues || []).forEach(l => {
+    const m = l.revenue ? (100 * l.net_profit / l.revenue).toFixed(0) + '%' : '—';
+    u += '<tr><td>' + (l.label || l.key) + ' <span class="live-note">' + (l.date_label || '') + '</span></td>'
+      + '<td class="num">' + money(l.revenue) + '</td><td class="num">' + money(l.net_profit) + '</td>'
+      + '<td class="num">' + m + '</td><td class="live-note">Acquisition engine — priced to fill, not to profit</td></tr>';
+  });
+  u += '<tr class="total"><td>Total</td><td class="num">' + money(PUB.total_revenue) + '</td><td class="num">'
+    + money(totalNet) + '</td><td class="num">' + (PUB.total_revenue ? (100*totalNet/PUB.total_revenue).toFixed(0)+'%' : '—')
+    + '</td><td></td></tr>';
+  document.getElementById('bmUnitBody').innerHTML = u;
+
+  paintBeverage();
+  paintApp();
+
+  const bm = document.getElementById('liveBadgeBM');
+  bm.classList.remove('off');
+  bm.lastElementChild.textContent = 'Live · Model · ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+
+// ---- Beverage economics — pulled out of the tournament lines and shown on its own ----
+function paintBeverage() {
+  if (!PUB) return;
+  const ts = PUB.tournaments || [];
+  const b = PUB.beverage;
+
+  // Per-event rows. Falls back gracefully if the model hasn't republished yet.
+  let rows = '';
+  let anyBev = false;
+  ts.forEach(t => {
+    if (t.beverage_revenue === undefined) return;
+    anyBev = true;
+    const gross = Number(t.beverage_gross) || 0;
+    const rev   = Number(t.beverage_revenue) || 0;
+    const mgn   = rev ? (100 * gross / rev).toFixed(0) + '%' : '—';
+    rows += '<tr><td><strong>' + (t.label || t.key) + '</strong> <span class="live-note">' + (t.date_label || '') + '</span></td>'
+      + '<td class="num">' + Math.round(t.drinks_total).toLocaleString() + '</td>'
+      + '<td class="num">' + money(rev) + '</td>'
+      + '<td class="num">(' + money(t.drink_cogs_total) + ')</td>'
+      + '<td class="num">' + money(gross) + '</td>'
+      + '<td class="num">' + mgn + '</td></tr>';
+  });
+
+  if (!anyBev || !b) {
+    document.getElementById('bevBody').innerHTML =
+      '<tr><td colspan="6" class="live-note">Beverage detail appears once the POC Financial Model has been opened and republished. Open the model, then press “Update from database”.</td></tr>';
+    return;
+  }
+
+  rows += '<tr class="total"><td>Total across the POC</td><td class="num">' + Math.round(b.units).toLocaleString()
+       + '</td><td class="num">' + money(b.revenue) + '</td><td class="num">(' + money(b.cogs) + ')</td><td class="num">'
+       + money(b.gross_profit) + '</td><td class="num">' + b.gross_margin_pct.toFixed(0) + '%</td></tr>';
+  document.getElementById('bevBody').innerHTML = rows;
+
+  set('bevUnits',     Math.round(b.units).toLocaleString());
+  set('bevPerPlayer', b.units_per_player.toFixed(2) + ' drinks per player, across the event');
+  set('bevRev',       money(b.revenue));
+  set('bevShare',     b.share_of_revenue_pct.toFixed(1) + '% of tournament revenue');
+  set('bevMargin',    b.gross_margin_pct.toFixed(0) + '%');
+  set('bevGross',     money(b.gross_profit));
+
+  const t0 = ts[0] || {};
+  set('proveUPP',    'Modelled at ' + b.units_per_player.toFixed(2) + ' per player');
+  set('provePrice',  t0.drink_price ? 'Modelled at ' + money(t0.drink_price) + ' per drink' : '—');
+  set('proveMargin', 'Modelled at ' + b.gross_margin_pct.toFixed(0) + '% gross');
+
+  // Honest framing adapts to what the numbers actually say.
+  const share = b.share_of_revenue_pct;
+  if (share >= 25) {
+    set('bevHonest', 'Beverage carries <strong>' + share.toFixed(1) + '% of tournament revenue</strong> at a <strong>'
+      + b.gross_margin_pct.toFixed(0) + '% gross margin</strong> — a material line in its own right, not an add-on. '
+      + 'What the POC must still prove is throughput: that a cart can serve ' + Math.round(b.units).toLocaleString()
+      + ' drinks in the rhythm of play. Demand is modelled; serve-rate is the operational constraint that caps it.');
+  } else {
+    set('bevHonest', 'In the POC, beverage is a <strong>proof line, not a profit line</strong> — and the Company would rather say so than dress it up. '
+      + 'It carries <strong>' + share.toFixed(1) + '% of tournament revenue</strong> (' + money(b.revenue) + ') at a <strong>'
+      + b.gross_margin_pct.toFixed(0) + '% gross margin</strong>. Entry fees carry the economics because a first-year event business is priced to fill. '
+      + 'What the drink must prove in this phase is the <strong>unit economics that make the scaled model work</strong>: that players buy at the price point ('
+      + b.units_per_player.toFixed(2) + ' drinks per player), that the margin holds, and that a cart can serve the volume in the rhythm of play. '
+      + 'A beverage brand that cannot yet show a large beverage profit line, but <em>can</em> show a validated per-player drink rate and a proven margin, is exactly where a well-run POC should be. '
+      + 'The scaled model adds permanent cart placements — the drink sold every day the courts are open, not three days a quarter.');
+  }
+}
+
+// ---- App subscription — illustrative Phase 2 layer, explicitly outside the POC ----
+const APP_PRICE = 25;   // $/month, from players (not venues)
+function paintApp() {
+  if (!PUB) return;
+  const ts = PUB.tournaments || [];
+  const players  = ts.reduce((s, t) => s + (Number(t.players) || 0), 0);
+  // Community base the POC assembles: tournament entries (deduped ~65% for repeat players)
+  // plus league members. Deliberately conservative — repeat entrants are not double-counted.
+  const base = Math.round(players * 0.65) + 135;
+
+  const rows = [0.05, 0.10, 0.15, 0.25].map(c => {
+    const subs = Math.round(base * c);
+    const mrr  = subs * APP_PRICE;
+    const read = c <= 0.05 ? 'Cautious floor'
+              : c <= 0.10 ? 'Reasonable early conversion'
+              : c <= 0.15 ? 'Plausible for an engaged niche'
+              : 'Requires the app to be essential to play';
+    return '<tr><td>' + (100 * c) + '% of the community</td><td class="num">' + subs
+      + '</td><td class="num">' + money(mrr) + '</td><td class="num">' + money(mrr * 12)
+      + '</td><td class="live-note">' + read + '</td></tr>';
+  }).join('');
+
+  document.getElementById('appBody').innerHTML =
+    '<tr class="subhead"><td colspan="5">Base: ~' + base.toLocaleString()
+    + ' players assembled by the POC (' + players.toLocaleString()
+    + ' tournament entries, deduped for repeat entrants, plus league members) · at ' + money(APP_PRICE) + '/month</td></tr>'
+    + rows;
+}
+
+// ============ BOOTSTRAP ============
+async function bootstrap() {
+  document.getElementById('hdrDate').textContent =
+    new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}).toUpperCase();
+  await Promise.all([loadModel(), loadLedger()]);
+  paintOverview();
+  paintLedger();
+  paintDeviation();
+  paintExecution();
+  paintProjection();
+  paintBusinessModel();
+}
+document.getElementById('btnUpdateFin').addEventListener('click', async () => {
+  await Promise.all([loadModel(), loadLedger()]);
+  paintOverview(); paintLedger(); paintDeviation();
+});
+document.getElementById('btnUpdateProj').addEventListener('click', async () => {
+  await loadModel(); paintOverview(); paintProjection(); paintExecution();
+});
+document.getElementById('btnUpdateBM').addEventListener('click', async () => {
+  await loadModel(); paintBusinessModel();
+});
+
+// ============ LOG ============
+async function refreshLog() {
+  const tb = document.getElementById('logBody');
+  tb.innerHTML = '<tr><td colspan="4" class="live-note">Loading…</td></tr>';
+  const { data, error } = await sb.from('diligence_activity').select('ts, actor, event, detail').order('ts', {ascending:false}).limit(200);
+  if (error || !data) { tb.innerHTML = '<tr><td colspan="4" class="live-note">Could not load the log.</td></tr>'; return; }
+  if (!data.length)   { tb.innerHTML = '<tr><td colspan="4" class="live-note">No entries yet.</td></tr>'; return; }
+  tb.innerHTML = data.map(r =>
+    '<tr><td class="mono">' + new Date(r.ts).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})
+    + '</td><td>' + (r.actor||'—') + '</td><td class="mono">' + r.event + '</td><td class="live-note" style="font-size:12px">' + (r.detail||'') + '</td></tr>').join('');
+}
+document.getElementById('btnRefreshLog').addEventListener('click', refreshLog);
+</script>
+</body>
+</html>
